@@ -1,39 +1,54 @@
-# DJ Society Backend
+# 🎛️ DJ Society Backend
 
-## Overview
+## About
 
-The DJ Society Backend is a robust API designed to power the DJ Society platform by managing all critical data and user interactions securely and efficiently. It supports user authentication, content management, and community engagement features necessary for a dynamic DJ learning environment.
+The DJ Society Backend powers the whole DJ Society platform — it’s where all the data lives and where the magic happens behind the scenes. Whether it’s managing users, serving up the latest tutorials, or keeping track of events and music recs, this backend keeps everything running smooth and secure.
+
+Built by Harvey Rennison & Alex McLauchlan, it’s designed for DJs at every level to connect, learn, and grow.
 
 ---
 
-## Features
+## What it Does
 
-- **User Authentication & Authorization**  
-  Secure login, registration, and session management to protect user data and control access to membership-only features.
+- 🔐 **Secure Login & Registration**  
+  Keeps your account safe and lets you access exclusive member content.
 
-- **User Profiles**  
-  Store and manage user information, preferences, and progress within the platform.
+- 👤 **User Profiles**  
+  Stores your info, preferences, and progress so the platform feels personal to you.
 
-- **Content Management**  
-  CRUD operations for tutorial articles, music recommendations, and gear/technique tips to keep content fresh and relevant.
+- 📚 **Content Management**  
+  Adds and updates tutorials, gear tips, and music recommendations so you always have fresh, useful info.
 
-- **Event Listings**  
-  Create, update, and display local gigs and DJ-related events for the community.
+- 📅 **Event Listings**  
+  Shows local gigs and DJ events to keep you plugged into the scene.
 
-- **Music Recommendations**  
-  Manage curated playlists and new music suggestions tailored for beginner and intermediate DJs.
+- 🎧 **Music Recommendations**  
+  Curated playlists and tracks specially picked for beginner and intermediate DJs.
 
-- **API Security**  
-  Implements best practices for data protection, including encryption, token-based authentication (JWT), and validation.
+- 🔒 **Security**  
+  Uses JWT tokens, encryption, and validation to protect your data.
 
 ---
 
 ## Tech Stack
 
-- Backend Framework: Node.js with Express  
-- Database: MySQL with Aiven  
-- Authentication: JWT (JSON Web Tokens)  
-- Hosting: Vercel
+- Node.js & Express — handling all the API requests  
+- MySQL (hosted on Aiven) — storing data reliably  
+- JWT Authentication — keeping logins secure  
+- Hosted on Vercel — fast and scalable
 
 ---
 
+## Why It Exists
+
+We created this backend to support a community for new DJs who want to dive into DJing but don’t know where to start. It helps make the DJ Society website a friendly, trustworthy place where you can learn, share, and discover new music and events without any hassle.
+
+---
+
+## Current Status
+
+Early days — we’re actively building out features and adding content. Stay tuned for updates!
+
+---
+
+## Made by Harvey Rennison & Alex McLauchlan
