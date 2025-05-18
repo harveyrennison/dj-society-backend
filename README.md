@@ -41,7 +41,7 @@ Built by Harvey Rennison & Alex McLauchlan, it’s designed for DJs at every lev
 
 ## Why It Exists
 
-We created this backend to support a community for new DJs who want to dive into DJing but don’t know where to start. It helps make the DJ Society website a friendly, trustworthy place where you can learn, share, and discover new music and events without any hassle.
+We created this backend to support a community for new DJs who want to dive into DJing but don’t know where to start. It helps make The DJ Society website a friendly, trustworthy place where you can learn, share, and discover new music and events without any hassle.
 
 ---
 
