@@ -1,12 +1,12 @@
+import { ResultSetHeader } from "mysql2";
 import { getPool } from "../../config/db";
 import Logger from "../../config/logger";
-import { ResultSetHeader } from 'mysql2';
 
 const create = async (firstName: string, lastName: string, email: string, password: string): Promise<ResultSetHeader> => {
-    Logger.info('Registering user to the database.');
+    Logger.info("Registering user to the database.");
     const conn = await getPool().getConnection();
     try {
-        const query = 'INSERT INTO user (first_name, last_name, email, password) VALUES (?, ?, ?, ?);';
+        const query = "INSERT INTO user (first_name, last_name, email, password) VALUES (?, ?, ?, ?);";
         const [rows] = await conn.query(query, [firstName, lastName, email, password]);
         return rows as ResultSetHeader;
     } catch (err) {
@@ -21,7 +21,7 @@ const getFromEmail = async (email: string): Promise<User[]> => {
     Logger.info(`Retrieving user with email ${email} from the database`);
     const conn = await getPool().getConnection();
     try {
-        const query = 'SELECT * FROM user WHERE email = ?;';
+        const query = "SELECT * FROM user WHERE email = ?;";
         const [rows] = await conn.query(query, [email]);
         return rows as User[];
     } catch (err) {
@@ -36,7 +36,7 @@ const getFromId = async (id: number): Promise<User[]> => {
     Logger.info(`Retrieving user ${id} from the database`);
     const conn = await getPool().getConnection();
     try {
-        const query = 'SELECT * FROM user WHERE id = ?;';
+        const query = "SELECT * FROM user WHERE id = ?;";
         const [rows] = await conn.query(query, [id]);
         return rows as User[];
     } catch (err) {
@@ -51,7 +51,7 @@ const setToken = async (id: number, token: string): Promise<ResultSetHeader> => 
     Logger.info(`Setting authentication token for user ${id}`);
     const conn = await getPool().getConnection();
     try {
-        const query = 'UPDATE user SET auth_token = ? WHERE id = ?;';
+        const query = "UPDATE user SET auth_token = ? WHERE id = ?;";
         const [rows] = await conn.query(query, [token, id]);
         return rows as ResultSetHeader;
     } catch (err) {
@@ -66,7 +66,7 @@ const getFromToken = async (token: string): Promise<User[]> => {
     Logger.info(`Retrieving id from authentication token`);
     const conn = await getPool().getConnection();
     try {
-        const query = 'SELECT * FROM user WHERE auth_token = ?;';
+        const query = "SELECT * FROM user WHERE auth_token = ?;";
         const [rows] = await conn.query(query, [token]);
         return rows as User[];
     } catch (err) {
@@ -81,7 +81,7 @@ const removeToken = async (token: string): Promise<ResultSetHeader> => {
     Logger.info(`Removing authentication token`);
     const conn = await getPool().getConnection();
     try {
-        const query = 'UPDATE user SET auth_token = NULL WHERE auth_token = ?;';
+        const query = "UPDATE user SET auth_token = NULL WHERE auth_token = ?;";
         const [rows] = await conn.query(query, [token]);
         return rows as ResultSetHeader;
     } catch (err) {
@@ -96,7 +96,7 @@ const setFirstName = async (id: number, firstName: string): Promise<ResultSetHea
     Logger.info(`Updating first name for user with id: ${id}`);
     const conn = await getPool().getConnection();
     try {
-        const query = 'UPDATE user SET first_name = ? WHERE id = ?;';
+        const query = "UPDATE user SET first_name = ? WHERE id = ?;";
         const [rows] = await conn.query(query, [firstName, id]);
         return rows as ResultSetHeader;
     } catch (err) {
@@ -111,7 +111,7 @@ const setLastName = async (id: number, lastName: string): Promise<ResultSetHeade
     Logger.info(`Updating last name for user with id: ${id}`);
     const conn = await getPool().getConnection();
     try {
-        const query = 'UPDATE user SET last_name = ? WHERE id = ?;';
+        const query = "UPDATE user SET last_name = ? WHERE id = ?;";
         const [rows] = await conn.query(query, [lastName, id]);
         return rows as ResultSetHeader;
     } catch (err) {
@@ -126,7 +126,7 @@ const setEmail = async (id: number, email: string): Promise<ResultSetHeader> => 
     Logger.info(`Updating email for user with id: ${id}`);
     const conn = await getPool().getConnection();
     try {
-        const query = 'UPDATE user SET email = ? WHERE id = ?;';
+        const query = "UPDATE user SET email = ? WHERE id = ?;";
         const [rows] = await conn.query(query, [email, id]);
         return rows as ResultSetHeader;
     } catch (err) {
@@ -141,7 +141,7 @@ const setPassword = async (id: number, password: string): Promise<ResultSetHeade
     Logger.info(`Updating password for user with id: ${id}`);
     const conn = await getPool().getConnection();
     try {
-        const query = 'UPDATE user SET password = ? WHERE id = ?;';
+        const query = "UPDATE user SET password = ? WHERE id = ?;";
         const [rows] = await conn.query(query, [password, id]);
         return rows as ResultSetHeader;
     } catch (err) {

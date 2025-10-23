@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
-import Logger from '../../config/logger';
-import {AJVvalidate} from "../services/AJVvalidate";
-import * as schemas from "../resources/schemas.json"
+import Logger from "../../config/logger";
+import * as tokens from "../authentication/token";
 import * as users from "../models/user.model";
-import {returnUserData} from "../transformers/user.transformer"
-import * as passwords from "../services/passwords"
-import * as tokens from "../authentication/token"
+import * as schemas from "../resources/schemas.json";
+import {AJVvalidate} from "../services/AJVvalidate";
+import * as passwords from "../services/passwords";
+import {returnUserData} from "../transformers/user.transformer";
 
 const register = async (req: Request, res: Response): Promise<void> => {
     try {
-        const contentType = req.header('Content-Type');
-        if (!contentType || contentType !== 'application/json') {
+        const contentType = req.header("Content-Type");
+        if (!contentType || contentType !== "application/json") {
             res.status(400).json({ error: "Bad Request: Content-Type must be application/json" });
             return;
         }
@@ -43,8 +43,8 @@ const register = async (req: Request, res: Response): Promise<void> => {
 
 const login = async (req: Request, res: Response): Promise<void> => {
     try {
-        const contentType = req.header('Content-Type');
-        if (!contentType || contentType !== 'application/json') {
+        const contentType = req.header("Content-Type");
+        if (!contentType || contentType !== "application/json") {
             res.status(400).json({ error: "Bad Request: Content-Type must be application/json" });
             return;
         }
@@ -82,7 +82,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
 
 const logout = async (req: Request, res: Response): Promise<void> => {
     try {
-        const token = req.header('X-Authorization');
+        const token = req.header("X-Authorization");
         if (!token) {
             res.status(401).json({ error: "Unauthorized: Cannot log out if you are not authenticated." });
             return;
@@ -115,7 +115,7 @@ const view = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const token = req.header('X-Authorization');
+        const token = req.header("X-Authorization");
         let isAuthenticated = false;
         if (token) {
             const userToken = await users.getFromToken(token);
@@ -134,8 +134,8 @@ const view = async (req: Request, res: Response): Promise<void> => {
 
 const update = async (req: Request, res: Response): Promise<void> => {
     try {
-        const contentType = req.header('Content-Type');
-        if (!contentType || contentType !== 'application/json') {
+        const contentType = req.header("Content-Type");
+        if (!contentType || contentType !== "application/json") {
             res.status(400).json({ error: "Bad Request: Content-Type must be application/json" });
             return;
         }
@@ -159,12 +159,12 @@ const update = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        if (('password' in req.body) !== ('currentPassword' in req.body)) {
+        if (("password" in req.body) !== ("currentPassword" in req.body)) {
             res.status(400).json({ error: "Bad Request: You must provide your current and new password." });
             return;
         }
 
-        const token = req.header('X-Authorization');
+        const token = req.header("X-Authorization");
         const userToken = await users.getFromToken(token);
         if (!token || userToken.length === 0 ) {
             res.status(401).json({ error: "Unauthorized: You must log in first." });
@@ -176,10 +176,10 @@ const update = async (req: Request, res: Response): Promise<void> => {
         }
 
         try {
-            if ('firstName' in req.body) await users.setFirstName(userId, req.body.firstName);
-            if ('lastName' in req.body) await users.setLastName(userId, req.body.lastName);
+            if ("firstName" in req.body) { await users.setFirstName(userId, req.body.firstName); }
+            if ("lastName" in req.body) { await users.setLastName(userId, req.body.lastName); }
 
-            if ('email' in req.body) {
+            if ("email" in req.body) {
                 const existingUser = await users.getFromEmail(req.body.email);
                 if (existingUser.length !== 0) {
                     res.status(403).json({ error: "Forbidden: There is already a user registered with the email you provided." });
@@ -189,7 +189,7 @@ const update = async (req: Request, res: Response): Promise<void> => {
             }
 
             const currentHashedPassword = user[0].password;
-            if ('password' in req.body && 'currentPassword' in req.body) {
+            if ("password" in req.body && "currentPassword" in req.body) {
                 const currPassword = req.body.currentPassword;
                 const comparePasswordAndHash = await passwords.compare(req.body.password, currentHashedPassword);
                 if (comparePasswordAndHash === true) {

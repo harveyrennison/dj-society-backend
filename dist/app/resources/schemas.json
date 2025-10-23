@@ -1,0 +1,104 @@
+{
+    "user_register": {
+        "type": "object",
+        "properties": {
+            "firstName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+            },
+            "lastName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+            },
+            "email": {
+                "type": "string",
+                "format": "email",
+                "minLength": 1,
+                "maxLength": 256
+            },
+            "password": {
+                "type": "string",
+                "format": "password",
+                "minLength": 6,
+                "maxLength": 64
+            }
+        },
+        "required": [
+            "firstName",
+            "lastName",
+            "email",
+            "password"
+        ],
+        "additionalProperties": false
+    },
+    "user_login": {
+        "type": "object",
+        "properties": {
+            "email": {
+                "type": "string",
+                "format": "email",
+                "minLength": 1,
+                "maxLength": 256
+            },
+            "password": {
+                "type": "string",
+                "format": "password",
+                "minLength": 6,
+                "maxLength": 64
+            }
+        },
+        "required": [
+            "email",
+            "password"
+        ],
+        "additionalProperties": false
+    },
+    "user_search": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "string",
+                "format": "integer",
+                "minLength": 1,
+                "maxLength": 2147483646
+            }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+    },
+    "user_edit": {
+        "type": "object",
+        "properties": {
+            "firstName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+            },
+            "lastName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+            },
+            "email": {
+                "type": "string",
+                "format": "email",
+                "minLength": 1,
+                "maxLength": 256
+            },
+            "password": {
+                "type": "string",
+                "format": "password",
+                "minLength": 6,
+                "maxLength": 64
+            },
+            "currentPassword": {
+                "type": "string",
+                "format": "password",
+                "minLength": 6,
+                "maxLength": 64
+            }
+        }
+    }
+}
