@@ -1,6 +1,6 @@
-import mysql from 'mysql2/promise';
-import dotenv from 'dotenv';
-import Logger from './logger';
+import dotenv from "dotenv";
+import mysql from "mysql2/promise";
+import Logger from "./logger";
 
 dotenv.config();
 // technically typed : {pool: mysql.Pool}
@@ -16,14 +16,14 @@ const connect = async (): Promise<void> => {
         user: process.env.SENG365_MYSQL_USER,
         password: process.env.SENG365_MYSQL_PASSWORD,
         database: process.env.SENG365_MYSQL_DATABASE,
-        port: parseInt(process.env.SENG365_MYSQL_PORT,10) || 3306,
+        port: parseInt(process.env.SENG365_MYSQL_PORT, 10) || 3306,
         ssl: {
             rejectUnauthorized: false
         }
     } );
     await state.pool.getConnection(); // Check connection
-    Logger.info(`Successfully connected to database`)
-    return
+    Logger.info(`Successfully connected to database`);
+    return;
 };
 
 // technically typed : () => mysql.Pool
@@ -31,4 +31,4 @@ const getPool = () => {
     return state.pool;
 };
 
-export {connect, getPool}
+export {connect, getPool};
