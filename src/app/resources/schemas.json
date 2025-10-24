@@ -12,6 +12,12 @@
             "minLength": 1,
             "maxLength": 64
         },
+        "username": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9_.]+$"
+        },
         "email": {
             "type": "string",
             "format": "email",

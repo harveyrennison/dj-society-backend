@@ -19,7 +19,7 @@ const getImage = (id) => __awaiter(void 0, void 0, void 0, function* () {
     logger_1.default.info(`Retrieving image for user ${id}`);
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "SELECT image_filename FROM user WHERE id = ?;";
+        const query = "SELECT image_filename FROM users WHERE id = ?;";
         const [rows] = yield conn.query(query, [id]);
         if (!rows || rows.length === 0) {
             return null;
@@ -39,7 +39,7 @@ const setImage = (id, image) => __awaiter(void 0, void 0, void 0, function* () {
     logger_1.default.info(`Setting image for user ${id}`);
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "UPDATE user SET image_filename = ? WHERE id = ?;";
+        const query = "UPDATE users SET image_filename = ? WHERE id = ?;";
         const [rows] = yield conn.query(query, [image, id]);
         return rows;
     }
@@ -56,7 +56,7 @@ const deleteImage = (id) => __awaiter(void 0, void 0, void 0, function* () {
     logger_1.default.info(`Deleting image for user ${id}`);
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "UPDATE user SET image_filename = NULL WHERE id = ?;";
+        const query = "UPDATE users SET image_filename = NULL WHERE id = ?;";
         const [rows] = yield conn.query(query, [id]);
         return rows;
     }

@@ -1,0 +1,19 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+.env.*
+ca.pem
+
+# Bruno testing
+bruno_test_suite/
+
+# Build and logs
+dist/
+build/
+logs/
+*.log
+
+# macOS system files
+.DS_Store

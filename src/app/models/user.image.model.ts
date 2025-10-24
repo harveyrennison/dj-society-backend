@@ -6,7 +6,7 @@ const getImage = async (id: number): Promise<string | null> => {
     Logger.info(`Retrieving image for user ${id}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "SELECT image_filename FROM user WHERE id = ?;";
+        const query = "SELECT image_filename FROM users WHERE id = ?;";
         const [rows] = await conn.query(query, [id]);
 
         if (!rows || rows.length === 0) {
@@ -26,7 +26,7 @@ const setImage = async (id: number, image: string): Promise<ResultSetHeader> => 
     Logger.info(`Setting image for user ${id}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "UPDATE user SET image_filename = ? WHERE id = ?;";
+        const query = "UPDATE users SET image_filename = ? WHERE id = ?;";
         const [rows] = await conn.query(query, [image, id]);
         return rows as ResultSetHeader;
     } catch (err) {
@@ -41,7 +41,7 @@ const deleteImage = async (id: number): Promise<ResultSetHeader> => {
     Logger.info(`Deleting image for user ${id}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "UPDATE user SET image_filename = NULL WHERE id = ?;";
+        const query = "UPDATE users SET image_filename = NULL WHERE id = ?;";
         const [rows] = await conn.query(query, [id]);
         return rows as ResultSetHeader;
     } catch (err) {

@@ -33,7 +33,6 @@ exports.default = () => {
     // ROUTES
     require("../app/routes/backdoor.routes")(app);
     require("../app/routes/user.routes")(app);
-    require("../app/routes/game.routes")(app);
     return app;
 };
 //# sourceMappingURL=express.js.map

@@ -15,7 +15,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const { firstName, lastName, email, password } = req.body;
+        const { firstName, lastName, username, email, password } = req.body;
         Logger.http(`POST create a user with name: ${firstName} ${lastName}`);
 
         const validation = await AJVvalidate(schemas.user_register, req.body);
@@ -23,18 +23,21 @@ const register = async (req: Request, res: Response): Promise<void> => {
             res.status(400).json({ error: `Bad Request: ${validation.toString()}` });
             return;
         }
-        const existingUser = await users.getFromEmail(email);
-        if (existingUser.length !== 0) {
+        const existingEmail = await users.getFromEmail(email);
+        if (existingEmail.length !== 0) {
             res.status(403).json({ error: "There is already a user registered with the email you provided. Please log in." });
             return;
         }
+
+        const existingUsername = await users.getFromUsername(username);
+        if (existingUsername.length !== 0) {
+            res.status(403).json({ error: "There is already a user registered with the username you provided. Please log in." });
+            return;
+        }
         const passwordHash = await passwords.hash(password);
-        const result = await users.create(firstName, lastName, email, passwordHash);
+        const result = await users.create(firstName, lastName, username, email, passwordHash);
         const userId = result.insertId;
-        res.status(201).json({
-            userId,
-            message: `Successfully registered new user with name: ${firstName} ${lastName}.`
-        });
+        res.status(201).json({ userId, message:`Successfully registered new user with name: ${firstName} ${lastName}.` });
     } catch (err) {
         Logger.error(err);
         res.status(500).json({ error: "Internal Server Error" });
@@ -114,7 +117,7 @@ const view = async (req: Request, res: Response): Promise<void> => {
             res.status(404).json({ error: `User with id: ${userId} not found.` });
             return;
         }
-
+        
         const token = req.header("X-Authorization");
         let isAuthenticated = false;
         if (token) {
@@ -178,10 +181,19 @@ const update = async (req: Request, res: Response): Promise<void> => {
         try {
             if ("firstName" in req.body) { await users.setFirstName(userId, req.body.firstName); }
             if ("lastName" in req.body) { await users.setLastName(userId, req.body.lastName); }
+            
+            if ("username" in req.body) { 
+                const existingUsername = await users.getFromEmail(req.body.username);
+                if (existingUsername.length !== 0) {
+                    res.status(403).json({ error: "Forbidden: There is already a user registered with the email you provided." });
+                    return;
+                }
+                await users.setUsername(userId, req.body.username);
+            }
 
             if ("email" in req.body) {
-                const existingUser = await users.getFromEmail(req.body.email);
-                if (existingUser.length !== 0) {
+                const existingEmail = await users.getFromEmail(req.body.email);
+                if (existingEmail.length !== 0) {
                     res.status(403).json({ error: "Forbidden: There is already a user registered with the email you provided." });
                     return;
                 }

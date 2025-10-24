@@ -88,7 +88,7 @@ exports.loadData = loadData;
  * @returns {Promise<void>}
  */
 const populateDefaultUsers = () => __awaiter(void 0, void 0, void 0, function* () {
-    const createSQL = "INSERT INTO `user` (`email`, `first_name`, `last_name`, `image_filename`, `password`) VALUES ?";
+    const createSQL = "INSERT INTO `users` (`first_name`, `last_name`, `username`, `email`, `password_hash`) VALUES ?";
     const properties = defaultUsers.properties;
     let usersData = defaultUsers.usersData;
     // Shallow copy all the user arrays within the main data array

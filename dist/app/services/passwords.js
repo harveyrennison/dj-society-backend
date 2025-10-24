@@ -16,11 +16,17 @@ exports.compare = exports.hash = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const hash = (password) => __awaiter(void 0, void 0, void 0, function* () {
     // todo: password hashing and comparing are left to you
+    if (!password) {
+        throw new Error("Password is required for hashing");
+    }
     return yield bcrypt_1.default.hash(password, 10);
 });
 exports.hash = hash;
 const compare = (password, comp) => __awaiter(void 0, void 0, void 0, function* () {
     // todo: password hashing and comparing are left to you
+    if (!password) {
+        throw new Error("Password is required for hashing");
+    }
     return yield bcrypt_1.default.compare(password, comp);
 });
 exports.compare = compare;

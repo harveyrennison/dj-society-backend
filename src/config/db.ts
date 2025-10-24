@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import * as fs from "fs";
 import mysql from "mysql2/promise";
 import Logger from "./logger";
 
@@ -12,13 +13,14 @@ const connect = async (): Promise<void> => {
     state.pool = mysql.createPool( {
         connectionLimit: 100,
         multipleStatements: true,
-        host: process.env.SENG365_MYSQL_HOST,
-        user: process.env.SENG365_MYSQL_USER,
-        password: process.env.SENG365_MYSQL_PASSWORD,
-        database: process.env.SENG365_MYSQL_DATABASE,
-        port: parseInt(process.env.SENG365_MYSQL_PORT, 10) || 3306,
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        host: process.env.DB_HOST,
+        port: parseInt(process.env.DB_PORT, 10),
+        database: process.env.DB_DATABASE,
         ssl: {
-            rejectUnauthorized: false
+            ca: fs.readFileSync("./ca.pem").toString(),
+            rejectUnauthorized: true
         }
     } );
     await state.pool.getConnection(); // Check connection

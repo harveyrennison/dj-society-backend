@@ -1,6 +1,6 @@
 {
-    "properties": [],
+    "properties": ["first_name", "last_name", "username", "email", "password"],
     "usersData": [
-        []
+        ["Harvey", "Rennison", "harveyr", "harveyr@gmail.com", "mypassword"]
     ]
 }

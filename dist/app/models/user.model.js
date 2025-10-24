@@ -19,7 +19,7 @@ const create = (firstName, lastName, email, password) => __awaiter(void 0, void 
     logger_1.default.info("Registering user to the database.");
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "INSERT INTO user (first_name, last_name, email, password) VALUES (?, ?, ?, ?);";
+        const query = "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?);";
         const [rows] = yield conn.query(query, [firstName, lastName, email, password]);
         return rows;
     }
@@ -36,7 +36,7 @@ const getFromEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
     logger_1.default.info(`Retrieving user with email ${email} from the database`);
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "SELECT * FROM user WHERE email = ?;";
+        const query = "SELECT * FROM users WHERE email = ?;";
         const [rows] = yield conn.query(query, [email]);
         return rows;
     }
@@ -53,7 +53,7 @@ const getFromId = (id) => __awaiter(void 0, void 0, void 0, function* () {
     logger_1.default.info(`Retrieving user ${id} from the database`);
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "SELECT * FROM user WHERE id = ?;";
+        const query = "SELECT * FROM users WHERE id = ?;";
         const [rows] = yield conn.query(query, [id]);
         return rows;
     }
@@ -70,7 +70,7 @@ const setToken = (id, token) => __awaiter(void 0, void 0, void 0, function* () {
     logger_1.default.info(`Setting authentication token for user ${id}`);
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "UPDATE user SET auth_token = ? WHERE id = ?;";
+        const query = "UPDATE users SET auth_token = ? WHERE id = ?;";
         const [rows] = yield conn.query(query, [token, id]);
         return rows;
     }
@@ -87,7 +87,7 @@ const getFromToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
     logger_1.default.info(`Retrieving id from authentication token`);
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "SELECT * FROM user WHERE auth_token = ?;";
+        const query = "SELECT * FROM users WHERE auth_token = ?;";
         const [rows] = yield conn.query(query, [token]);
         return rows;
     }
@@ -104,7 +104,7 @@ const removeToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
     logger_1.default.info(`Removing authentication token`);
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "UPDATE user SET auth_token = NULL WHERE auth_token = ?;";
+        const query = "UPDATE users SET auth_token = NULL WHERE auth_token = ?;";
         const [rows] = yield conn.query(query, [token]);
         return rows;
     }
@@ -121,7 +121,7 @@ const setFirstName = (id, firstName) => __awaiter(void 0, void 0, void 0, functi
     logger_1.default.info(`Updating first name for user with id: ${id}`);
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "UPDATE user SET first_name = ? WHERE id = ?;";
+        const query = "UPDATE users SET first_name = ? WHERE id = ?;";
         const [rows] = yield conn.query(query, [firstName, id]);
         return rows;
     }
@@ -138,7 +138,7 @@ const setLastName = (id, lastName) => __awaiter(void 0, void 0, void 0, function
     logger_1.default.info(`Updating last name for user with id: ${id}`);
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "UPDATE user SET last_name = ? WHERE id = ?;";
+        const query = "UPDATE users SET last_name = ? WHERE id = ?;";
         const [rows] = yield conn.query(query, [lastName, id]);
         return rows;
     }
@@ -155,7 +155,7 @@ const setEmail = (id, email) => __awaiter(void 0, void 0, void 0, function* () {
     logger_1.default.info(`Updating email for user with id: ${id}`);
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "UPDATE user SET email = ? WHERE id = ?;";
+        const query = "UPDATE users SET email = ? WHERE id = ?;";
         const [rows] = yield conn.query(query, [email, id]);
         return rows;
     }
@@ -172,7 +172,7 @@ const setPassword = (id, password) => __awaiter(void 0, void 0, void 0, function
     logger_1.default.info(`Updating password for user with id: ${id}`);
     const conn = yield (0, db_1.getPool)().getConnection();
     try {
-        const query = "UPDATE user SET password = ? WHERE id = ?;";
+        const query = "UPDATE users SET password = ? WHERE id = ?;";
         const [rows] = yield conn.query(query, [password, id]);
         return rows;
     }
