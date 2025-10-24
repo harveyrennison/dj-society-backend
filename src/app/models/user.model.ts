@@ -2,12 +2,12 @@ import { ResultSetHeader } from "mysql2";
 import { getPool } from "../../config/db";
 import Logger from "../../config/logger";
 
-const create = async (firstName: string, lastName: string, username: string, email: string, password_hash: string): Promise<ResultSetHeader> => {
+const create = async (firstName: string, lastName: string, username: string, email: string, password: string): Promise<ResultSetHeader> => {
     Logger.info("Registering user to the database.");
     const conn = await getPool().getConnection();
     try {
-        const query = "INSERT INTO users (first_name, last_name, username, email, password_hash) VALUES (?, ?, ?, ?, ?);";
-        const [rows] = await conn.query(query, [firstName, lastName, username, email, password_hash]);
+        const query = "INSERT INTO users (first_name, last_name, username, email, password) VALUES (?, ?, ?, ?, ?);";
+        const [rows] = await conn.query(query, [firstName, lastName, username, email, password]);
         return rows as ResultSetHeader;
     } catch (err) {
         Logger.error(`Error registering user: ${err.message}`);
@@ -167,12 +167,12 @@ const setEmail = async (id: number, email: string): Promise<ResultSetHeader> => 
     }
 };
 
-const setPassword = async (id: number, password_hash: string): Promise<ResultSetHeader> => {
+const setPassword = async (id: number, password: string): Promise<ResultSetHeader> => {
     Logger.info(`Updating password for user with id: ${id}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "UPDATE users SET password_hash = ? WHERE id = ?;";
-        const [rows] = await conn.query(query, [password_hash, id]);
+        const query = "UPDATE users SET password = ? WHERE id = ?;";
+        const [rows] = await conn.query(query, [password, id]);
         return rows as ResultSetHeader;
     } catch (err) {
         Logger.error(`Error updating password: ${err.message}`);

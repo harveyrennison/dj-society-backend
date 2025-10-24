@@ -44,7 +44,7 @@ const loadData = async (): Promise<any> => {
  * @returns {Promise<void>}
  */
 const populateDefaultUsers = async (): Promise<void> => {
-    const createSQL = "INSERT INTO `users` (`first_name`, `last_name`, `username`, `email`, `password_hash`) VALUES ?";
+    const createSQL = "INSERT INTO `users` (`first_name`, `last_name`, `username`, `email`, `password`) VALUES ?";
 
     const properties = defaultUsers.properties;
     let usersData = defaultUsers.usersData;
