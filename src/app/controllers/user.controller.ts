@@ -58,7 +58,6 @@ const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
         const { email, password } = req.body;
-        Logger.http(`POST login with email: ${email}.`);
         const user = await users.getFromEmail(email);
         if (user.length === 0) {
             res.status(401).json({ error: "Incorrect email or password." });
@@ -168,62 +167,63 @@ const update = async (req: Request, res: Response): Promise<void> => {
         }
 
         const token = req.header("X-Authorization");
-        const userToken = await users.getFromToken(token);
-        if (!token || userToken.length === 0 ) {
+        if (!token) {
             res.status(401).json({ error: "Unauthorized: You must log in first." });
             return;
         }
+
+        const userToken = await users.getFromToken(token);
         if (userToken[0].id !== userId) {
             res.status(403).json({ error: "Forbidden: You can only edit your own information." });
             return;
         }
 
-        try {
-            if ("firstName" in req.body) { await users.setFirstName(userId, req.body.firstName); }
-            if ("lastName" in req.body) { await users.setLastName(userId, req.body.lastName); }
+        if ("firstName" in req.body) { await users.setFirstName(userId, req.body.firstName); }
+        if ("lastName" in req.body) { await users.setLastName(userId, req.body.lastName); }
 
-            if ("username" in req.body) {
-                const existingUsername = await users.getFromEmail(req.body.username);
-                if (existingUsername.length !== 0) {
-                    res.status(403).json({ error: "Forbidden: There is already a user registered with the email you provided." });
-                    return;
-                }
-                await users.setUsername(userId, req.body.username);
+        if ("username" in req.body) {
+            const existingUsername = await users.getFromUsername(req.body.username);
+            if (existingUsername.length !== 0) {
+                res.status(403).json({ error: "Forbidden: There is already a user registered with the username you provided." });
+                return;
             }
-
-            if ("email" in req.body) {
-                const existingEmail = await users.getFromEmail(req.body.email);
-                if (existingEmail.length !== 0) {
-                    res.status(403).json({ error: "Forbidden: There is already a user registered with the email you provided." });
-                    return;
-                }
-                await users.setEmail(userId, req.body.email);
-            }
-
-            const currentHashedPassword = user[0].password;
-            if ("password" in req.body && "currentPassword" in req.body) {
-                const currPassword = req.body.currentPassword;
-                const comparePasswordAndHash = await passwords.compare(req.body.password, currentHashedPassword);
-                if (comparePasswordAndHash === true) {
-                    res.status(403).json({ error: "Forbidden: You must choose a new password different from your original." });
-                    return;
-                }
-                if (currPassword !== user[0].password) {
-                    res.status(401).json({ error: "Unauthorized: Invalid current password." });
-                    return;
-                }
-                const hashNewPassword = await passwords.hash(req.body.password);
-                await users.setPassword(userId, hashNewPassword);
-            }
-
-            res.status(200).json({ data: req.body });
-        } catch (dbErr) {
-            Logger.error(dbErr);
-            res.status(500).json({ error: "Failed to update user information in database" });
+            await users.setUsername(userId, req.body.username);
         }
-    } catch (err) {
-        Logger.error(err);
-        res.status(500).json({ error: "Internal Server Error" });
+
+        if ("email" in req.body) {
+            const existingEmail = await users.getFromEmail(req.body.email);
+            if (existingEmail.length !== 0) {
+                res.status(403).json({ error: "Forbidden: There is already a user registered with the email you provided." });
+                return;
+            }
+            await users.setEmail(userId, req.body.email);
+        }
+
+        if ("password" in req.body && "currentPassword" in req.body) {
+            const { currentPassword, password } = req.body;
+            const currentHashed = user[0].password;
+
+            const correctCurrent = await passwords.compare(currentPassword, currentHashed);
+            if (!correctCurrent) {
+                res.status(401).json({ error: "Unauthorized: Invalid current password." });
+                return;
+            }
+
+            const sameAsOld = await passwords.compare(password, currentHashed);
+            if (sameAsOld) {
+                res.status(403).json({ error: "Forbidden: You must choose a new password different from your original." });
+                return;
+            }
+
+            const newHash = await passwords.hash(password);
+            await users.setPassword(userId, newHash);
+        }
+
+        const updatedUser = await users.getFromId(userId);
+        res.status(200).json(returnUserData(updatedUser[0], true));
+    } catch (dbErr) {
+        Logger.error(dbErr);
+        res.status(500).json({ error: "Failed to update user information in database" });
     }
 };
 

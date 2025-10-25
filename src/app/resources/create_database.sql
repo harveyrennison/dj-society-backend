@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS `users`;
 
 CREATE TABLE "users" (
   "id"              int(11)         NOT NULL AUTO_INCREMENT,
-  "first_name"      varchar(64)     NOT NULL
+  "first_name"      varchar(64)     NOT NULL,
   "last_name"       varchar(64)     NOT NULL,
   "username"        varchar(64)     NOT NULL,
   "email"           varchar(256)    NOT NULL,

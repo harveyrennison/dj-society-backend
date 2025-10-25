@@ -3,6 +3,7 @@ import Logger from "../../config/logger";
 interface PublicUser {
     firstName: string;
     lastName: string;
+    username: string;
 }
 
 interface AuthenticatedUser extends PublicUser {
@@ -11,13 +12,14 @@ interface AuthenticatedUser extends PublicUser {
 
 export const publicUser = (user: User): PublicUser => {
     try {
-        if (!user || !user.first_name || !user.last_name) {
+        if (!user || !user.first_name || !user.last_name || !user.username) {
             throw new Error("Invalid user data");
         }
 
         return {
             firstName: user.first_name,
-            lastName: user.last_name
+            lastName: user.last_name,
+            username: user.username
         };
     } catch (error) {
         Logger.error(`Error transforming user to public format: ${error.message}`);
