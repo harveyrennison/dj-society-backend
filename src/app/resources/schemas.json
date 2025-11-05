@@ -32,10 +32,11 @@
         }
         },
         "required": [
-        "firstName",
-        "lastName",
-        "email",
-        "password"
+            "firstName",
+            "lastName",
+            "username",
+            "email",
+            "password"
         ],
         "additionalProperties": false
     },
