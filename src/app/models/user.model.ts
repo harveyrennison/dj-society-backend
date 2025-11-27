@@ -2,12 +2,12 @@ import { ResultSetHeader } from "mysql2";
 import { getPool } from "../../config/db";
 import Logger from "../../config/logger";
 
-const create = async (firstName: string, lastName: string, username: string, email: string, password: string): Promise<ResultSetHeader> => {
+const create = async (email: string, password: string): Promise<ResultSetHeader> => {
     Logger.info("Registering user to the database.");
     const conn = await getPool().getConnection();
     try {
-        const query = "INSERT INTO users (first_name, last_name, username, email, password) VALUES (?, ?, ?, ?, ?);";
-        const [rows] = await conn.query(query, [firstName, lastName, username, email, password]);
+        const query = "INSERT INTO users (email, password) VALUES (?, ?);";
+        const [rows] = await conn.query(query, [email, password]);
         return rows as ResultSetHeader;
     } catch (err) {
         Logger.error(`Error registering user: ${err.message}`);

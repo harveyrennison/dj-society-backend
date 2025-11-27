@@ -18,7 +18,7 @@ module.exports = (app: Express) => {
         .patch(user.update);
 
     app.route(rootUrl + "/users/:id/image")
-        .get(userImages.getImage)
-        .put(userImages.setImage)
-        .delete(userImages.deleteImage);
+        .get(userImages.getProfileImage)
+        .put(userImages.setProfileImage)
+        .delete(userImages.deleteProfileImage);
 };

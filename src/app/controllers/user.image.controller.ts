@@ -5,7 +5,7 @@ import Logger from "../../config/logger";
 import * as images from "../models/user.image.model";
 import * as users from "../models/user.model";
 
-const getImage = async (req: Request, res: Response): Promise<void> => {
+const getProfileImage = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = parseInt(req.params.id, 10);
         if (isNaN(userId) || userId <= 0) {
@@ -43,7 +43,7 @@ const getImage = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-const setImage = async (req: Request, res: Response): Promise<void> => {
+const setProfileImage = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = parseInt(req.params.id, 10);
         if (isNaN(userId) || userId <= 0) {
@@ -124,7 +124,7 @@ const setImage = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-const deleteImage = async (req: Request, res: Response): Promise<void> => {
+const deleteProfileImage = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId = parseInt(req.params.id, 10);
         if (isNaN(userId) || userId <= 0) {
@@ -164,4 +164,4 @@ const deleteImage = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export {getImage, setImage, deleteImage};
+export {getProfileImage, setProfileImage, deleteProfileImage};

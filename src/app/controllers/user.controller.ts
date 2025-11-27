@@ -15,8 +15,8 @@ const register = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const { firstName, lastName, username, email, password } = req.body;
-        Logger.http(`POST create a user with name: ${firstName} ${lastName}`);
+        const { email, password } = req.body;
+        Logger.http(`POST create a user with email: ${email}`);
 
         const validation = await AJVvalidate(schemas.user_register, req.body);
         if (validation !== true) {
@@ -29,15 +29,10 @@ const register = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const existingUsername = await users.getFromUsername(username);
-        if (existingUsername.length !== 0) {
-            res.status(403).json({ error: "There is already a user registered with the username you provided. Please log in." });
-            return;
-        }
         const passwordHash = await passwords.hash(password);
-        const result = await users.create(firstName, lastName, username, email, passwordHash);
+        const result = await users.create(email, passwordHash);
         const userId = result.insertId;
-        res.status(201).json({ userId, message: `Successfully registered new user with name: ${firstName} ${lastName}.` });
+        res.status(201).json({ userId, message: `Successfully registered new user with email: ${email}` });
     } catch (err) {
         Logger.error(err);
         res.status(500).json({ error: "Internal Server Error" });
