@@ -1,9 +1,14 @@
 import { connect } from "./config/db";
 import express from "./config/express";
+import { initializeFirebaseAdmin } from "./config/firebase-admin";
 import Logger from "./config/logger";
 
 const app = express();
 const port = process.env.PORT || 4941;
+
+// --- CRITICAL STEP: Initialize Firebase Admin BEFORE routes and server start ---
+initializeFirebaseAdmin();
+// -----------------------------------------------------------------------------
 
 // Connect to MySQL on start
 async function main() {

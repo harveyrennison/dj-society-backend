@@ -17,12 +17,13 @@ const create = async (email: string, password: string): Promise<ResultSetHeader>
     }
 };
 
-const getFromId = async (id: number): Promise<User[]> => {
-    Logger.info(`Retrieving user ${id} from the database`);
+const getFromId = async (userId: number): Promise<User[]> => {
+    Logger.info(`Retrieving user ${userId} from the database`);
     const conn = await getPool().getConnection();
     try {
-        const query = "SELECT * FROM users WHERE id = ?;";
-        const [rows] = await conn.query(query, [id]);
+        const query = "SELECT * FROM users WHERE user_id = ?;";
+        // Assuming rows is the first element of the result array
+        const [rows] = await conn.query(query, [userId]);
         return rows as User[];
     } catch (err) {
         Logger.error(`Error retrieving user by ID: ${err.message}`);
@@ -32,26 +33,27 @@ const getFromId = async (id: number): Promise<User[]> => {
     }
 };
 
-const getFromUsername = async (username: string): Promise<User[]> => {
-    Logger.info(`Retrieving user with username ${username} from the database`);
-    const conn = await getPool().getConnection();
-    try {
-        const query = "SELECT * FROM users WHERE username = ?;";
-        const [rows] = await conn.query(query, [username]);
-        return rows as User[];
-    } catch (err) {
-        Logger.error(`Error retrieving user by username: ${err.message}`);
-        throw new Error(`Failed to retrieve user by username: ${err.message}`);
-    } finally {
-        await conn.release();
-    }
-};
+// const getFromUsername = async (username: string): Promise<User[]> => {
+//     Logger.info(`Retrieving user with username ${username} from the database`);
+//     const conn = await getPool().getConnection();
+//     try {
+//         const query = "SELECT * FROM users WHERE username = ?;";
+//         const [rows] = await conn.query(query, [username]);
+//         return rows as User[];
+//     } catch (err) {
+//         Logger.error(`Error retrieving user by username: ${err.message}`);
+//         throw new Error(`Failed to retrieve user by username: ${err.message}`);
+//     } finally {
+//         await conn.release();
+//     }
+// };
 
 const getFromEmail = async (email: string): Promise<User[]> => {
     Logger.info(`Retrieving user with email ${email} from the database`);
     const conn = await getPool().getConnection();
     try {
         const query = "SELECT * FROM users WHERE email = ?;";
+        // Assuming rows is the first element of the result array
         const [rows] = await conn.query(query, [email]);
         return rows as User[];
     } catch (err) {
@@ -62,12 +64,12 @@ const getFromEmail = async (email: string): Promise<User[]> => {
     }
 };
 
-const setToken = async (id: number, token: string): Promise<ResultSetHeader> => {
-    Logger.info(`Setting authentication token for user ${id}`);
+const setToken = async (userId: number, token: string): Promise<ResultSetHeader> => {
+    Logger.info(`Setting authentication token for user ${userId}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "UPDATE users SET auth_token = ? WHERE id = ?;";
-        const [rows] = await conn.query(query, [token, id]);
+        const query = "UPDATE users SET token = ? WHERE user_id = ?;";
+        const [rows] = await conn.query(query, [token, userId]);
         return rows as ResultSetHeader;
     } catch (err) {
         Logger.error(`Error setting authentication token: ${err.message}`);
@@ -81,7 +83,7 @@ const getFromToken = async (token: string): Promise<User[]> => {
     Logger.info(`Retrieving id from authentication token`);
     const conn = await getPool().getConnection();
     try {
-        const query = "SELECT * FROM users WHERE auth_token = ?;";
+        const query = "SELECT * FROM users WHERE token = ?;";
         const [rows] = await conn.query(query, [token]);
         return rows as User[];
     } catch (err) {
@@ -96,7 +98,7 @@ const removeToken = async (token: string): Promise<ResultSetHeader> => {
     Logger.info(`Removing authentication token`);
     const conn = await getPool().getConnection();
     try {
-        const query = "UPDATE users SET auth_token = NULL WHERE auth_token = ?;";
+        const query = "UPDATE users SET token = NULL WHERE token = ?;";
         const [rows] = await conn.query(query, [token]);
         return rows as ResultSetHeader;
     } catch (err) {
@@ -107,12 +109,12 @@ const removeToken = async (token: string): Promise<ResultSetHeader> => {
     }
 };
 
-const setFirstName = async (id: number, firstName: string): Promise<ResultSetHeader> => {
-    Logger.info(`Updating first name for user with id: ${id}`);
+const setFirstName = async (userId: number, firstName: string): Promise<ResultSetHeader> => {
+    Logger.info(`Updating first name for user with id: ${userId}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "UPDATE users SET first_name = ? WHERE id = ?;";
-        const [rows] = await conn.query(query, [firstName, id]);
+        const query = "UPDATE users SET first_name = ? WHERE user_id = ?;";
+        const [rows] = await conn.query(query, [firstName, userId]);
         return rows as ResultSetHeader;
     } catch (err) {
         Logger.error(`Error updating first name: ${err.message}`);
@@ -122,12 +124,12 @@ const setFirstName = async (id: number, firstName: string): Promise<ResultSetHea
     }
 };
 
-const setLastName = async (id: number, lastName: string): Promise<ResultSetHeader> => {
-    Logger.info(`Updating last name for user with id: ${id}`);
+const setLastName = async (userId: number, lastName: string): Promise<ResultSetHeader> => {
+    Logger.info(`Updating last name for user with id: ${userId}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "UPDATE users SET last_name = ? WHERE id = ?;";
-        const [rows] = await conn.query(query, [lastName, id]);
+        const query = "UPDATE users SET last_name = ? WHERE user_id = ?;";
+        const [rows] = await conn.query(query, [lastName, userId]);
         return rows as ResultSetHeader;
     } catch (err) {
         Logger.error(`Error updating last name: ${err.message}`);
@@ -137,12 +139,12 @@ const setLastName = async (id: number, lastName: string): Promise<ResultSetHeade
     }
 };
 
-const setUsername = async (id: number, username: string): Promise<ResultSetHeader> => {
-    Logger.info(`Updating username for user with id: ${id}`);
+const setUsername = async (userId: number, username: string): Promise<ResultSetHeader> => {
+    Logger.info(`Updating username for user with id: ${userId}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "UPDATE users SET username = ? WHERE id = ?;";
-        const [rows] = await conn.query(query, [username, id]);
+        const query = "UPDATE users SET username = ? WHERE user_id = ?;";
+        const [rows] = await conn.query(query, [username, userId]);
         return rows as ResultSetHeader;
     } catch (err) {
         Logger.error(`Error updating username: ${err.message}`);
@@ -152,12 +154,12 @@ const setUsername = async (id: number, username: string): Promise<ResultSetHeade
     }
 };
 
-const setEmail = async (id: number, email: string): Promise<ResultSetHeader> => {
-    Logger.info(`Updating email for user with id: ${id}`);
+const setEmail = async (userId: number, email: string): Promise<ResultSetHeader> => {
+    Logger.info(`Updating email for user with id: ${userId}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "UPDATE users SET email = ? WHERE id = ?;";
-        const [rows] = await conn.query(query, [email, id]);
+        const query = "UPDATE users SET email = ? WHERE user_id = ?;";
+        const [rows] = await conn.query(query, [email, userId]);
         return rows as ResultSetHeader;
     } catch (err) {
         Logger.error(`Error updating email: ${err.message}`);
@@ -167,12 +169,12 @@ const setEmail = async (id: number, email: string): Promise<ResultSetHeader> => 
     }
 };
 
-const setPassword = async (id: number, password: string): Promise<ResultSetHeader> => {
-    Logger.info(`Updating password for user with id: ${id}`);
+const setPassword = async (userId: number, password: string): Promise<ResultSetHeader> => {
+    Logger.info(`Updating password for user with id: ${userId}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "UPDATE users SET password = ? WHERE id = ?;";
-        const [rows] = await conn.query(query, [password, id]);
+        const query = "UPDATE users SET password = ? WHERE user_id = ?;";
+        const [rows] = await conn.query(query, [password, userId]);
         return rows as ResultSetHeader;
     } catch (err) {
         Logger.error(`Error updating password: ${err.message}`);
@@ -182,4 +184,4 @@ const setPassword = async (id: number, password: string): Promise<ResultSetHeade
     }
 };
 
-export { create, getFromId, getFromUsername, getFromEmail, setToken, getFromToken, removeToken, setFirstName, setLastName, setUsername, setEmail, setPassword };
+export { create, getFromId, getFromEmail, setToken, getFromToken, removeToken, setFirstName, setLastName, setUsername, setEmail, setPassword };

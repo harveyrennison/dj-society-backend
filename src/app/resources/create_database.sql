@@ -15,17 +15,15 @@ DROP TABLE IF EXISTS `users`;
 
 CREATE TABLE `users` (
     -- Typical user what not
-    `id`              INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `first_name`      VARCHAR(64)  NULL,
-    `last_name`       VARCHAR(64)  NULL,
-    `username`        VARCHAR(64)  NOT NULL,
+    `user_id`              INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `email`           VARCHAR(256) NOT NULL,
     `password`        VARCHAR(255) NOT NULL,
-    `auth_token`      CHAR(64)     DEFAULT NULL,
-    `created_at`      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uniq_users_username` (`username`),
-    UNIQUE KEY `uniq_users_email`    (`email`),
+    `token`           VARCHAR(64)  DEFAULT NULL,
+    `first_name`      VARCHAR(64)  NULL,
+    `last_name`       VARCHAR(64)  NULL,
+    -- `created_at`      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`user_id`),
+    UNIQUE KEY `uniq_users_email`    (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

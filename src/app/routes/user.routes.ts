@@ -1,24 +1,24 @@
 import {Express} from "express";
-import * as user from "../controllers/user.controller";
-import * as userImages from "../controllers/user.image.controller";
+import * as userController from "../controllers/user.controller";
+// import * as userImages from "../controllers/user.image.controller";
 import {rootUrl} from "./base.routes";
 
 module.exports = (app: Express) => {
     app.route(rootUrl + "/users/register")
-        .post(user.register);
+        .post(userController.register);
 
     app.route(rootUrl + "/users/login")
-        .post(user.login);
+        .post(userController.login);
 
     app.route(rootUrl + "/users/logout")
-        .post(user.logout);
+        .post(userController.logout);
 
     app.route(rootUrl + "/users/:id")
-        .get(user.view)
-        .patch(user.update);
+        .get(userController.view);
+    //     // .patch(user.update);
 
-    app.route(rootUrl + "/users/:id/image")
-        .get(userImages.getProfileImage)
-        .put(userImages.setProfileImage)
-        .delete(userImages.deleteProfileImage);
+    // app.route(rootUrl + "/users/:id/image")
+    //     .get(userImages.getProfileImage)
+    //     .put(userImages.setProfileImage)
+    //     .delete(userImages.deleteProfileImage);
 };
