@@ -17,6 +17,38 @@ const create = async (email: string, password: string): Promise<ResultSetHeader>
     }
 };
 
+// Add this new function to your model:
+const getFromFirebaseUid = async (firebaseUid: string): Promise<User[]> => {
+    Logger.info(`Retrieving user with Firebase UID ${firebaseUid} from the database`);
+    const conn = await getPool().getConnection();
+    try {
+        const query = "SELECT * FROM users WHERE firebase_uid = ?;";
+        const [rows] = await conn.query(query, [firebaseUid]);
+        return rows as User[];
+    } catch (err) {
+        Logger.error(`Error retrieving user by Firebase UID: ${err.message}`);
+        throw new Error(`Failed to retrieve user by Firebase UID: ${err.message}`);
+    } finally {
+        await conn.release();
+    }
+};
+
+const setFirebaseUid = async (userId: number, firebaseUid: string): Promise<ResultSetHeader> => {
+    Logger.info(`Setting Firebase UID for user ${userId}`);
+    const conn = await getPool().getConnection();
+    try {
+        // Assume your users table has a column named 'firebase_uid'
+        const query = "UPDATE users SET firebase_uid = ? WHERE user_id = ?;";
+        const [rows] = await conn.query(query, [firebaseUid, userId]);
+        return rows as ResultSetHeader;
+    } catch (err) {
+        Logger.error(`Error setting Firebase UID: ${err.message}`);
+        throw new Error(`Failed to set Firebase UID: ${err.message}`);
+    } finally {
+        await conn.release();
+    }
+};
+
 const getFromId = async (userId: number): Promise<User[]> => {
     Logger.info(`Retrieving user ${userId} from the database`);
     const conn = await getPool().getConnection();
@@ -32,21 +64,6 @@ const getFromId = async (userId: number): Promise<User[]> => {
         await conn.release();
     }
 };
-
-// const getFromUsername = async (username: string): Promise<User[]> => {
-//     Logger.info(`Retrieving user with username ${username} from the database`);
-//     const conn = await getPool().getConnection();
-//     try {
-//         const query = "SELECT * FROM users WHERE username = ?;";
-//         const [rows] = await conn.query(query, [username]);
-//         return rows as User[];
-//     } catch (err) {
-//         Logger.error(`Error retrieving user by username: ${err.message}`);
-//         throw new Error(`Failed to retrieve user by username: ${err.message}`);
-//     } finally {
-//         await conn.release();
-//     }
-// };
 
 const getFromEmail = async (email: string): Promise<User[]> => {
     Logger.info(`Retrieving user with email ${email} from the database`);
@@ -139,21 +156,6 @@ const setLastName = async (userId: number, lastName: string): Promise<ResultSetH
     }
 };
 
-const setUsername = async (userId: number, username: string): Promise<ResultSetHeader> => {
-    Logger.info(`Updating username for user with id: ${userId}`);
-    const conn = await getPool().getConnection();
-    try {
-        const query = "UPDATE users SET username = ? WHERE user_id = ?;";
-        const [rows] = await conn.query(query, [username, userId]);
-        return rows as ResultSetHeader;
-    } catch (err) {
-        Logger.error(`Error updating username: ${err.message}`);
-        throw new Error(`Failed to update username: ${err.message}`);
-    } finally {
-        await conn.release();
-    }
-};
-
 const setEmail = async (userId: number, email: string): Promise<ResultSetHeader> => {
     Logger.info(`Updating email for user with id: ${userId}`);
     const conn = await getPool().getConnection();
@@ -184,4 +186,4 @@ const setPassword = async (userId: number, password: string): Promise<ResultSetH
     }
 };
 
-export { create, getFromId, getFromEmail, setToken, getFromToken, removeToken, setFirstName, setLastName, setUsername, setEmail, setPassword };
+export { create, getFromFirebaseUid, setFirebaseUid, getFromId, getFromEmail, setToken, getFromToken, removeToken, setFirstName, setLastName, setEmail, setPassword };

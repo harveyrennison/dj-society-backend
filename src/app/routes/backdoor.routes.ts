@@ -1,18 +1,11 @@
-import {Express} from "express";
-import {rootUrl} from "./base.routes";
-
+import { Router } from "express";
 import * as backdoor from "../controllers/backdoor.controller";
 
-module.exports = (app: Express) => {
-    app.route(rootUrl + "/reset")
-        .post(backdoor.resetDb);
+const router = Router();
 
-    app.route(rootUrl + "/resample")
-        .post(backdoor.resample);
+router.post("/reset", backdoor.resetDb);
+router.post("/resample", backdoor.resample);
+router.post("/reload", backdoor.reload);
+router.post("/executeSql", backdoor.executeSql);
 
-    app.route(rootUrl + "/reload")
-        .post(backdoor.reload);
-
-    app.route(rootUrl + "/executeSql")
-        .post(backdoor.executeSql);
-};
+export default router;

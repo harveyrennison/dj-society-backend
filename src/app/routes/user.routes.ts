@@ -1,24 +1,14 @@
-import {Express} from "express";
+import { Router } from "express";
 import * as userController from "../controllers/user.controller";
-// import * as userImages from "../controllers/user.image.controller";
-import {rootUrl} from "./base.routes";
+import { firebaseAuth } from "../middleware/authentication.middleware";
 
-module.exports = (app: Express) => {
-    app.route(rootUrl + "/users/register")
-        .post(userController.register);
+const router = Router();
 
-    app.route(rootUrl + "/users/login")
-        .post(userController.login);
+router.post("/register", userController.register);
+router.post("/login", userController.login);
+router.post("/logout", firebaseAuth, userController.logout);
 
-    app.route(rootUrl + "/users/logout")
-        .post(userController.logout);
+// Requires authentication to view user by ID
+router.get("/:id", firebaseAuth, userController.view);
 
-    app.route(rootUrl + "/users/:id")
-        .get(userController.view);
-    //     // .patch(user.update);
-
-    // app.route(rootUrl + "/users/:id/image")
-    //     .get(userImages.getProfileImage)
-    //     .put(userImages.setProfileImage)
-    //     .delete(userImages.deleteProfileImage);
-};
+export default router;

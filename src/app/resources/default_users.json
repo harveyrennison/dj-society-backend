@@ -1,6 +1,6 @@
 {
   "properties": ["email", "password"],
   "usersData": [
-    ["harveyrennison@gmail.com", "harveypassword"]
+    ["test@test.com", "password"]
   ]
 }

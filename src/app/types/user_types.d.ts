@@ -2,8 +2,30 @@ type User = {
     readonly user_id: number;
     email: string;
     password: string;
+    firebase_uid: string;
     token: string;
 }
+
+type DjProfileData = {
+    user_id: number;
+    dj_name: string;
+    bio: string;
+    location: string;
+    genres: string; // Stored as a JSON string
+    equipment: string;
+    soundcloud_url: string;
+    instagram_url: string;
+    avatar_url: string;
+    banner_url: string;
+};
+
+type DjProfile = DjProfileData & {
+    dj_id: number;
+};
+
+
+
+
 
 // type Genres = {
 

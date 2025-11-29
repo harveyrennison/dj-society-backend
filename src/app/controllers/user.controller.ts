@@ -1,12 +1,11 @@
 import { Request, Response } from "express";
 import { admin } from "../../config/firebase-admin";
 import Logger from "../../config/logger";
-import {createToken} from "../authentication/token";
+import { createToken } from "../authentication/token";
 import * as usersModel from "../models/user.model";
 import * as schemas from "../resources/schemas.json";
-import {AJVvalidate} from "../services/AJVvalidate";
+import { AJVvalidate } from "../services/AJVvalidate";
 import * as passwords from "../services/passwords";
-import { returnUserData } from "../transformers/user.transformer";
 
 const register = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -32,12 +31,14 @@ const register = async (req: Request, res: Response): Promise<void> => {
 
         const passwordHash = await passwords.hash(password);
         const result = await usersModel.create(email, passwordHash);
-        const userId = result.insertId; // <-- Use this ID
-
-        const token = createToken(); // Generate the local token
-        await usersModel.setToken(userId, token); // Save it to the database
+        const userId = result.insertId;
 
         const firebaseUID = userId.toString();
+        await usersModel.setFirebaseUid(userId, firebaseUID);
+
+        const token = createToken();
+        await usersModel.setToken(userId, token);
+
         const firebaseCustomToken = await admin.auth().createCustomToken(firebaseUID);
 
         res.status(201).json({
@@ -69,46 +70,80 @@ const login = async (req: Request, res: Response): Promise<void> => {
         }
 
         const { email, password } = req.body;
-        const users = await usersModel.getFromEmail(email);
-        const user = users[0];
 
-        // Correction: Using imported 'passwords.compare' and assuming 'user.password' is the stored hash.
-        const hashedPassword = user.password;
-        if (!user || !await passwords.compare(password, hashedPassword)) {
+        // 1. Get user by email
+        const users = await usersModel.getFromEmail(email);
+        const user = users && users.length > 0 ? users[0] : null;
+
+        // 2. CRITICAL FIX: Check if user was found BEFORE accessing properties
+        if (!user) {
+            // Log this specific failure type for debugging
+            Logger.warn(`Login attempt failed: user not found for email: ${email}`);
             res.status(401).send({ error: "Incorrect email or password." });
             return;
         }
+
+        // 3. Compare Password
+        const hashedPassword = user.password;
+        if (!await passwords.compare(password, hashedPassword)) {
+            // Log the failed comparison
+            Logger.warn(`Login attempt failed: incorrect password for email: ${email}`);
+            res.status(401).send({ error: "Incorrect email or password." });
+            return;
+        }
+
+        // 4. Proceed with successful authentication
+        const firebaseUID = user.user_id.toString();
+        const firebaseCustomToken = await admin.auth().createCustomToken(firebaseUID);
+
         const token = createToken();
         await usersModel.setToken(user.user_id, token);
 
-        const firebaseUID = user.user_id.toString();
-        const firebaseCustomToken = await admin.auth().createCustomToken(firebaseUID);
-        // Success: Return the token for client-side Firebase sign-in
-        res.status(200).send({
-            firebaseToken: firebaseCustomToken, // For Firebase Sign-in
-            token,           // For X-Authorization header on API calls
+        // 5. Success: Return the Custom Token
+        res.status(200).json({
+            firebaseToken: firebaseCustomToken,
             userId: user.user_id,
+            message: `Successfully logged in user with email: ${email}`
         });
         return;
 
     } catch (err) {
-        Logger.error(err);
+        // Log the severe error so you can see it in your backend console
+        Logger.error("Login controller unexpected error:", err);
         res.status(500).json({ error: "Internal Server Error" });
         return;
     }
 };
 
+// Assuming your server uses cookies for session management (the best practice for logout)
+
 const logout = async (req: Request, res: Response): Promise<void> => {
+    // 1. Check the value immediately upon entry
+    Logger.info(`--- START LOGOUT CONTROLLER ---`);
+    Logger.info(`res.locals object keys: ${Object.keys(res.locals).join(", ")}`); // Should show 'userId'
+
+    const firebaseUid = res.locals.userId as string;
+
+    Logger.info(`Value of firebaseUid upon entry: [${firebaseUid}]`); // CRITICAL: What is the exact value?
+
+    // The token is already verified by firebaseAuth, so we have a valid UID.
+    if (!firebaseUid) {
+        Logger.error("Logout failure: firebaseUid is falsy despite passing auth middleware.");
+        res.status(401).json({ error: "Unauthorized: No valid session ID found." });
+        return;
+    }
+
     try {
-        const token = req.header("X-Authorization");
-        if (!token) {
-            res.status(401).json({ error: "Unauthorized: Cannot log out if you are not authenticated." });
-            return;
-        }
-        await usersModel.removeToken(token);
-        res.status(200).json({ message: "Logged out successfully." });
+        // 2. Revoke all refresh tokens for the current user.
+        await admin.auth().revokeRefreshTokens(firebaseUid);
+
+        Logger.info(`Successfully revoked tokens for Firebase UID: ${firebaseUid}`);
+        res.status(200).json({ message: "Logged out successfully. All sessions revoked." });
+
     } catch (err) {
-        Logger.error(err);
+        Logger.error(`Error during token revocation for UID ${firebaseUid}:`, err);
+        // Note: If the token was already revoked, Firebase might throw an error here,
+        // but it still means the user's sessions are terminated.
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
@@ -122,25 +157,25 @@ const view = async (req: Request, res: Response): Promise<void> => {
         }
         Logger.http(`GET single user with id: ${userId}`);
 
-        const user = await usersModel.getFromId(userId);
-        if (user.length === 0) {
+        const users = await usersModel.getFromId(userId);
+        if (users.length === 0) {
             res.status(404).json({ error: `User with id: ${userId} not found.` });
             return;
         }
 
-        const token = req.header("X-Authorization");
-        let isAuthenticated = false;
-        if (token) {
-            const userToken = await usersModel.getFromToken(token);
-            if (userToken.length > 0) {
-                if (user[0].user_id === userToken[0].user_id) {
-                    isAuthenticated = true;
-                }
-            }
-        }
+        const user = users[0];
+        const authenticatedFirebaseUID = res.locals.userId as string | undefined;
 
-        if (!isAuthenticated) {
-            res.status(200).json(user[0]);
+        const isOwner = authenticatedFirebaseUID && (user.firebase_uid === authenticatedFirebaseUID);
+
+        if (isOwner) {
+            res.status(200).json(user);
+            return;
+        } else {
+            const publicUser = {
+                user_id: user.user_id
+            };
+            res.status(200).json(publicUser);
             return;
         }
     } catch (err) {
@@ -149,7 +184,7 @@ const view = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export {login, logout, register, view};
+export { login, logout, register, view };
 
 // // const update = async (req: Request, res: Response): Promise<void> => {
 // //     try {

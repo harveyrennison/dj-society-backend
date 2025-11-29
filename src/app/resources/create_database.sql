@@ -3,10 +3,7 @@
 -- =========================
 -- Drop (order matters for FKs)
 -- =========================
-DROP TABLE IF EXISTS `social_links`;
-DROP TABLE IF EXISTS `user_genres`;
-DROP TABLE IF EXISTS `genres`;
-DROP TABLE IF EXISTS `social_network`;
+DROP TABLE IF EXISTS `dj_profiles`;
 DROP TABLE IF EXISTS `users`;
 
 -- =========================
@@ -15,17 +12,38 @@ DROP TABLE IF EXISTS `users`;
 
 CREATE TABLE `users` (
     -- Typical user what not
-    `user_id`              INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `email`           VARCHAR(256) NOT NULL,
+    `user_id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `email`           VARCHAR(255) NOT NULL UNIQUE,
     `password`        VARCHAR(255) NOT NULL,
+    `firebase_uid`    VARCHAR(128) UNIQUE, 
     `token`           VARCHAR(64)  DEFAULT NULL,
     `first_name`      VARCHAR(64)  NULL,
     `last_name`       VARCHAR(64)  NULL,
-    -- `created_at`      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`user_id`),
-    UNIQUE KEY `uniq_users_email`    (`email`)
+    KEY `idx_users_firebase_uid` (`firebase_uid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE `dj_profiles` (
+    `dj_id`              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `user_id`            INT UNSIGNED NOT NULL,
+    `dj_name`            VARCHAR(100) NOT NULL,
+    `bio`                VARCHAR(500) NULL,
+    `location`           VARCHAR(100) NOT NULL,
+    `genres`             JSON         NOT NULL, 
+    `equipment`          VARCHAR(255) NULL,
+    `soundcloud_url`     VARCHAR(255) NULL,
+    `instagram_url`      VARCHAR(255) NULL,
+    `avatar_url`         VARCHAR(255) NULL,
+    `banner_url`         VARCHAR(255) NULL,
+    PRIMARY KEY (`dj_id`),
+    -- Ensure a user can only have ONE DJ profile
+    UNIQUE KEY `uniq_dj_profiles_user` (`user_id`),
+    KEY `idx_dj_profiles_name` (`dj_name`),
+    CONSTRAINT `fk_dj_profiles_user_id`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `users` (`user_id`)
+        ON DELETE CASCADE -- If the user is deleted, delete the profile
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- CREATE TABLE `genres` (
