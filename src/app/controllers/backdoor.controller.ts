@@ -1,4 +1,4 @@
-import {Request, Response} from "express";
+import { Request, Response } from "express";
 import Logger from "../../config/logger";
 import * as Backdoor from "../models/backdoor.model";
 
@@ -46,10 +46,12 @@ const executeSql = async (req: Request, res: Response): Promise<void> => {
         res.statusMessage = "OK";
         res.status(200).json(results);
     } catch (err) {
-        if (!err.hasBeenLogged) { Logger.error(err); }
+        if (!err.hasBeenLogged) {
+            Logger.error(err);
+        }
         res.statusMessage = "Internal Server Error";
         res.status(500).send();
     }
 };
 
-export {resetDb, resample, reload, executeSql};
+export { executeSql, reload, resample, resetDb };

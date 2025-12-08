@@ -1,32 +1,54 @@
 type User = {
-    readonly user_id: number;
+    readonly userId: number;
     email: string;
     password: string;
-    firebase_uid: string;
+    firebaseUid: string;
     token: string;
-}
+};
 
 type DjProfileData = {
-    user_id: number;
-    dj_name: string;
+    userId: number;
+    djName: string;
     bio: string;
     location: string;
     genres: string; // Stored as a JSON string
     equipment: string;
-    soundcloud_url: string;
-    instagram_url: string;
-    avatar_url: string;
-    banner_url: string;
+    soundcloudUrl: string;
+    instagramUrl: string;
+    avatarUrl: string;
+    bannerUrl: string;
 };
 
 type DjProfile = DjProfileData & {
-    dj_id: number;
+    djId: number;
 };
 
+type Genre = {
+    genreId: number;
+    genreName: string;
+    subgenres: Subgenre[] | null;
+};
 
+type Subgenre = {
+    subgenreId: number;
+    subgenreName: string;
+};
 
+type DbGenreRow = {
+    genreId: number;
+    genreName: string;
+    parentId: number | null;
+};
 
+type UserGenre = {
+    userId: number;
+    genreId: number;
+}
 
+type SimpleGenre = {
+    genreId: number;
+    genreName: string;
+};
 // type Genres = {
 
 // }

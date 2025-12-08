@@ -5,14 +5,16 @@ import * as usersModel from "../models/user.model"; // <--- NEW: Import users mo
 import * as schemas from "../resources/schemas.json";
 import { AJVvalidate } from "../services/AJVvalidate";
 
-const prepareClientProfile = (profile: any) => {
+const prepareDjProfile = (profile: any) => {
     let parsedGenres: string[] = [];
     try {
         if (profile.genres) {
             parsedGenres = JSON.parse(profile.genres);
         }
     } catch (e) {
-        Logger.warn(`Failed to parse genres for profile ${profile.dj_id}: ${e.message}`);
+        Logger.warn(
+            `Failed to parse genres for profile ${profile.dj_id}: ${e.message}`
+        );
     }
 
     return {
@@ -34,7 +36,9 @@ const createProfile = async (req: Request, res: Response): Promise<void> => {
     try {
         const contentType = req.header("Content-Type");
         if (!contentType || contentType !== "application/json") {
-            res.status(400).json({ error: "Bad Request: Content-Type must be application/json" });
+            res.status(400).json({
+                error: "Bad Request: Content-Type must be application/json",
+            });
             return;
         }
 
@@ -43,72 +47,93 @@ const createProfile = async (req: Request, res: Response): Promise<void> => {
         // 1. Get the Firebase UID (set by firebaseAuth middleware)
         const firebaseUid = res.locals.userId as string;
         if (!firebaseUid) {
-             // This check should technically be redundant if firebaseAuth passed, but good for safety
-             res.status(401).json({ error: "Unauthorized: Missing authentication token." });
-             return;
+            // This check should technically be redundant if firebaseAuth passed, but good for safety
+            res.status(401).json({
+                error: "Unauthorized: Missing authentication token.",
+            });
+            return;
         }
 
         // 2. Look up the local user record using the Firebase UID
         const users = await usersModel.getFromFirebaseUid(firebaseUid);
         if (users.length === 0) {
-            res.status(404).json({ error: "User record not found in local database." });
+            res.status(404).json({
+                error: "User record not found in local database. Please ensure user is registered.",
+            });
             return;
         }
 
-        // 3. Extract the local numeric user_id
-        const localUserId = users[0].user_id;
+        const userId = users[0].userId;
+        Logger.info(
+            `Local user ID found: ${userId}. Checking for existing profile.`
+        );
 
-        Logger.http(`POST creating DJ profile for local user ID: ${localUserId} (Firebase UID: ${firebaseUid})`);
+        // --- 3. EARLY CHECK FOR EXISTING PROFILE (Optimized Check) ---
+        // We moved this check up immediately after getting the necessary local ID
+        const existingProfile = await djProfilesModel.getFromUserId(userId);
+        if (existingProfile.length > 0) {
+            res.status(403).json({
+                error: "Forbidden: A DJ profile already exists for this user.",
+            });
+            return;
+        }
 
         // --- 4. Validate the Request Body ---
-        const validation = await AJVvalidate(schemas.dj_profile_create, req.body);
+        const validation = await AJVvalidate(
+            schemas.dj_profile_create,
+            req.body
+        );
         if (validation !== true) {
-            res.status(400).json({ error: `Bad Request: ${validation.toString()}` });
+            res.status(400).json({
+                error: `Bad Request: ${validation.toString()}`,
+            });
             return;
         }
 
         // Extract data relevant to the profile
-        // Note: The variable names here are camelCase, which is fine for JS variables.
-        const { djName, bio, location, genres, equipment, soundcloudUrl, instagramUrl, avatarFile, bannerFile } = req.body;
-
-        // --- 5. Check for Existing Profile ---
-        // Use the local numeric ID for the database lookup
-        const existingProfile = await djProfilesModel.getFromUserId(localUserId);
-        if (existingProfile.length > 0) {
-            res.status(403).json({ error: "Forbidden: A DJ profile already exists for this user." });
-            return;
-        }
-
-        // --- 6. Save the Profile Data ---
-        // Map the camelCase request data to the required snake_case database model fields (DjProfileData)
-        const profileData = {
-            user_id: localUserId, // Use the local numeric ID
-            dj_name: djName,
+        const {
+            djName,
             bio,
             location,
-            genres: JSON.stringify(genres), // Store genres array as a JSON string
+            genres,
             equipment,
-            soundcloud_url: soundcloudUrl,
-            instagram_url: instagramUrl,
-            avatar_url: avatarFile,
-            banner_url: bannerFile,
+            soundcloudUrl,
+            instagramUrl,
+            avatarUrl,
+            bannerUrl,
+        } = req.body;
+
+        // --- 5. Save the Profile Data ---
+        const profileData = {
+            userId,
+            djName,
+            bio,
+            location,
+            genres: JSON.stringify(genres),
+            equipment,
+            soundcloudUrl,
+            instagramUrl,
+            avatarUrl,
+            bannerUrl,
         };
 
         const result = await djProfilesModel.create(profileData);
-        // Assuming you updated the SQL schema to use 'dj_id', but the model still returns 'insertId'
         const djId = result.insertId;
 
-        Logger.info(`Successfully created DJ profile ID: ${djId} for user ID: ${localUserId}`);
+        Logger.info(
+            `Successfully created DJ profile ID: ${djId} for user ID: ${userId}`
+        );
 
-        // --- 7. Success Response ---
+        // --- 6. Success Response ---
         res.status(201).json({
-            djId, // Changed from profileId to djId for consistency
-            message: `DJ profile '${djName}' successfully created.`
+            djId,
+            message: `DJ profile '${djName}' successfully created.`,
         });
         return;
-
     } catch (err) {
-        Logger.error(`Error creating DJ profile: ${err.message}`); // Log the message property for better visibility
+        Logger.error(
+            `Error creating DJ profile for user ${res.locals.userId}: ${err.message}`
+        );
         res.status(500).json({ error: "Internal Server Error" });
         return;
     }
@@ -119,7 +144,9 @@ const viewProfile = async (req: Request, res: Response): Promise<void> => {
         const djId = parseInt(req.params.id as string, 10);
 
         if (isNaN(djId)) {
-            res.status(400).json({ error: "Bad Request: DJ ID must be a number." });
+            res.status(400).json({
+                error: "Bad Request: DJ ID must be a number.",
+            });
             return;
         }
 
@@ -132,8 +159,7 @@ const viewProfile = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        res.status(200).json(prepareClientProfile(profiles[0]));
-
+        res.status(200).json(prepareDjProfile(profiles[0]));
     } catch (err) {
         Logger.error(`Error viewing DJ profile by ID: ${err.message}`);
         res.status(500).json({ error: "Internal Server Error" });
@@ -141,7 +167,42 @@ const viewProfile = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// Other potential functions:
-// const updateProfile = async (req: Request, res: Response): Promise<void> => { ... };
+const updateProfile = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const djId = parseInt(req.params.id, 10);
+        if (isNaN(djId) || djId <= 0) {
+            res.status(400).json({ error: "Invalid DJ ID" });
+            return;
+        }
 
-export { createProfile, viewProfile }; // <-- Export the new function
+        const djs = await djProfilesModel.getFromProfileId(djId);
+        if (djs.length === 0) {
+            res.status(404).json({ error: `DJ with id: ${djId} not found.` });
+        }
+
+        if ("password" in req.body !== "currentPassword" in req.body) {
+            res.status(400).json({
+                error: "Bad Request: You must provide your current and new password.",
+            });
+            return;
+        }
+
+        try {
+            if ("djName" in req.body) {
+                await djProfilesModel.setDjName(djId, req.body.djName);
+            }
+
+            res.status(200).json({ data: req.body });
+        } catch (dbErr) {
+            Logger.error(dbErr);
+            res.status(500).json({
+                error: "Failed to update user information in database",
+            });
+        }
+    } catch (err) {
+        Logger.error(err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+export { createProfile, updateProfile, viewProfile };

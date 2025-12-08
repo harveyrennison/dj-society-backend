@@ -28,5 +28,7 @@ const initializeFirebaseAdmin = (): void => {
     }
 };
 
+initializeFirebaseAdmin();
+
 // Export the initialization function and the initialized admin object
-export { initializeFirebaseAdmin, admin };
+export { admin };

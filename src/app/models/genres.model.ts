@@ -1,53 +1,118 @@
-// import { ResultSetHeader } from "mysql2";
-// import { getPool } from "../../config/db";
-// import Logger from "../../config/logger";
+import { ResultSetHeader } from "mysql2";
+import { getPool } from "../../config/db";
+import Logger from "../../config/logger";
 
-// // Retrieve all genres
-// const getAll = async (): Promise<Genre[]> => {
-//     Logger.info("Retrieving all genres");
-//     const conn = await getPool().getConnection();
-//     try {
-//         const query = "SELECT * FROM genres ORDER BY parent_id, name;";
-//         const [rows] = await conn.query(query);
-//         return rows as Genre[];
-//     } catch (err: any) {
-//         Logger.error(`Error retrieving genres: ${err.message}`);
-//         throw new Error(`Failed to retrieve genres: ${err.message}`);
-//     } finally {
-//         conn.release();
-//     }
-// };
+const clearDjGenres = async (djId: number): Promise<ResultSetHeader> => {
+    Logger.info(`Clearing all genre associations for DJ ID: ${djId}`);
+    const conn = await getPool().getConnection();
+    try {
+        const query = "DELETE FROM DjGenres WHERE djId = ?;";
+        const [rows] = await conn.query(query, [djId]);
+        return rows as ResultSetHeader;
+    } catch (err: any) {
+        Logger.error(`Error clearing DJ genres for ID ${djId}: ${err.message}`);
+        throw new Error(`Failed to clear DJ genres: ${err.message}`);
+    } finally {
+        await conn.release();
+    }
+};
 
-// // Retrieve genre from id
-// const getFromId = async (id: number): Promise<Genre[]> => {
-//     Logger.info(`Retrieving genre with ID: ${id}`);
-//     const conn = await getPool().getConnection();
-//     try {
-//         const query = "SELECT * FROM genres WHERE id = ?;";
-//         const [rows] = await conn.query(query, [id]);
-//         return rows as Genre[];
-//     } catch (err: any) {
-//         Logger.error(`Error retrieving genre by ID: ${err.message}`);
-//         throw new Error(`Failed to retrieve genre by ID: ${err.message}`);
-//     } finally {
-//         conn.release();
-//     }
-// };
+const createDjGenreAssociation = async (
+    djId: number,
+    genreId: number
+): Promise<ResultSetHeader> => {
+    Logger.info(`Associating user ${djId} with genre ${genreId}`);
+    const conn = await getPool().getConnection();
+    try {
+        const query = "INSERT INTO DjGenres (djId, genreId) VALUES (?, ?);";
+        // Use IGNORE to safely skip if the association already exists (due to composite key)
+        const [rows] = await conn.query(query, [djId, genreId]);
+        return rows as ResultSetHeader;
+    } catch (err: any) {
+        Logger.error(`Error creating user-genre association: ${err.message}`);
+        throw new Error(`Failed to create association: ${err.message}`);
+    } finally {
+        await conn.release();
+    }
+};
 
-// // Retrieve all subgenres under a given parent genre
-// // const getSubgenres = async (parentId: number): Promise<Genre[]> => {
-// //     Logger.info(`Retrieving subgenres for parent genre ID: ${parentId}`);
-// //     const conn = await getPool().getConnection();
-// //     try {
-// //         const query = "SELECT * FROM genres WHERE parent_id = ? ORDER BY name;";
-// //         const [rows] = await conn.query(query, [parentId]);
-// //         return rows as Genre[];
-// //     } catch (err: any) {
-// //         Logger.error(`Error retrieving subgenres: ${err.message}`);
-// //         throw new Error(`Failed to retrieve subgenres: ${err.message}`);
-// //     } finally {
-// //         conn.release();
-// //     }
-// // };
+const getGenresByDjId = async (djId: number): Promise<SimpleGenre[]> => {
+    Logger.info(`Retrieving genres for DJ ID: ${djId}`);
+    const conn = await getPool().getConnection();
+    try {
+        const query = `
+            SELECT
+                g.genreId,
+                g.genreName
+            FROM DjGenres dg      -- JOIN the DjGenres table
+            JOIN Genres g ON dg.genre_id = g.genreId
+            WHERE dg.djId = ?;   -- Filter by djId
+        `;
+        const [rows] = await conn.query(query, [djId]);
+        return rows as SimpleGenre[];
+    } catch (err: any) {
+        Logger.error(`Error retrieving DJ genres: ${err.message}`);
+        throw new Error(`Failed to retrieve DJ genres: ${err.message}`);
+    } finally {
+        await conn.release();
+    }
+};
 
-// // export { getAll, getFromId, getSubgenres };
+const getAllGenresAndNest = async (): Promise<Genre[]> => {
+    Logger.info("Retrieving all genres and nesting subgenres");
+    const conn = await getPool().getConnection();
+
+    try {
+        const query = `
+            SELECT genreId, name, parentId
+            FROM Genres
+            ORDER BY parentId NULLS FIRST, name ASC;
+        `;
+        const [rows] = await conn.query(query);
+        const dbRows = rows as DbGenreRow[];
+
+        const topLevelGenres: Genre[] = [];
+        const subgenresMap = new Map<number, Subgenre[]>();
+
+        for (const row of dbRows) {
+            if (row.parentId === null) {
+                topLevelGenres.push({
+                    genreId: row.genreId,
+                    genreName: row.genreName,
+                    subgenres: null,
+                });
+            } else {
+                const subgenre: Subgenre = {
+                    subgenreId: row.genreId,
+                    subgenreName: row.genreName,
+                };
+                const parentId = row.parentId;
+
+                if (subgenresMap.has(parentId)) {
+                    subgenresMap.get(parentId)!.push(subgenre);
+                } else {
+                    subgenresMap.set(parentId, [subgenre]);
+                }
+            }
+        }
+
+        const result: Genre[] = topLevelGenres.map((parentGenre) => ({
+            ...parentGenre,
+            subgenres: subgenresMap.get(parentGenre.genreId) || null,
+        }));
+
+        return result;
+    } catch (err: any) {
+        Logger.error(`Error retrieving and nesting genres: ${err.message}`);
+        throw new Error(`Failed to retrieve genres: ${err.message}`);
+    } finally {
+        conn.release();
+    }
+};
+
+export {
+    clearDjGenres,
+    createDjGenreAssociation,
+    getAllGenresAndNest,
+    getGenresByDjId,
+};
