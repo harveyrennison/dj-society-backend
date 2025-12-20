@@ -1,13 +1,14 @@
-type User = {
-    readonly userId: number;
-    email: string;
-    password: string;
+export type User = {
+    userId: string;
     firebaseUid: string;
-    token: string;
-};
+    email: string;
+    password?: string; // Optional because Google users might not have one locally
+    firstName?: string | null;
+    lastName?: string | null;
+}
 
 type DjProfileData = {
-    userId: number;
+    userId: string;
     djName: string;
     bio: string;
     location: string;
@@ -20,33 +21,33 @@ type DjProfileData = {
 };
 
 type DjProfile = DjProfileData & {
-    djId: number;
+    djId: string;
 };
 
 type Genre = {
-    genreId: number;
+    genreId: string;
     genreName: string;
     subgenres: Subgenre[] | null;
 };
 
 type Subgenre = {
-    subgenreId: number;
+    subgenreId: string;
     subgenreName: string;
 };
 
 type DbGenreRow = {
-    genreId: number;
+    genreId: string;
     genreName: string;
-    parentId: number | null;
+    parentId: string | null;
 };
 
 type UserGenre = {
-    userId: number;
-    genreId: number;
-}
+    userId: string;
+    genreId: string;
+};
 
 type SimpleGenre = {
-    genreId: number;
+    genreId: string;
     genreName: string;
 };
 // type Genres = {

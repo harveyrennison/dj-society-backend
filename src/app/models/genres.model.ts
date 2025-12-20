@@ -2,7 +2,7 @@ import { ResultSetHeader } from "mysql2";
 import { getPool } from "../../config/db";
 import Logger from "../../config/logger";
 
-const clearDjGenres = async (djId: number): Promise<ResultSetHeader> => {
+const clearDjGenres = async (djId: string): Promise<ResultSetHeader> => {
     Logger.info(`Clearing all genre associations for DJ ID: ${djId}`);
     const conn = await getPool().getConnection();
     try {
@@ -18,8 +18,8 @@ const clearDjGenres = async (djId: number): Promise<ResultSetHeader> => {
 };
 
 const createDjGenreAssociation = async (
-    djId: number,
-    genreId: number
+    djId: string,
+    genreId: string
 ): Promise<ResultSetHeader> => {
     Logger.info(`Associating user ${djId} with genre ${genreId}`);
     const conn = await getPool().getConnection();
@@ -36,7 +36,7 @@ const createDjGenreAssociation = async (
     }
 };
 
-const getGenresByDjId = async (djId: number): Promise<SimpleGenre[]> => {
+const getGenresByDjId = async (djId: string): Promise<SimpleGenre[]> => {
     Logger.info(`Retrieving genres for DJ ID: ${djId}`);
     const conn = await getPool().getConnection();
     try {

@@ -32,7 +32,7 @@ const create = async (profileData: DjProfileData): Promise<ResultSetHeader> => {
     }
 };
 
-const getFromUserId = async (userId: number): Promise<DjProfile[]> => {
+const getFromUserId = async (userId: string): Promise<DjProfile[]> => {
     Logger.info(`Retrieving DJ profile for user ID: ${userId}`);
     const conn = await getPool().getConnection();
     try {
@@ -50,7 +50,7 @@ const getFromUserId = async (userId: number): Promise<DjProfile[]> => {
 };
 
 // You might also want a function to view the profile by its own ID:
-const getFromProfileId = async (djId: number): Promise<DjProfile[]> => {
+const getFromProfileId = async (djId: string): Promise<DjProfile[]> => {
     Logger.info(`Retrieving DJ profile ID: ${djId}`);
     const conn = await getPool().getConnection();
     try {
@@ -70,7 +70,7 @@ const getFromProfileId = async (djId: number): Promise<DjProfile[]> => {
 };
 
 const setDjName = async (
-    djId: number,
+    djId: string,
     djName: string
 ): Promise<ResultSetHeader> => {
     Logger.info(`Retrieving DJ profile ID: ${djId}`);
@@ -88,7 +88,7 @@ const setDjName = async (
 };
 
 const setDjBio = async (
-    djId: number,
+    djId: string,
     bio: string
 ): Promise<ResultSetHeader> => {
     Logger.info(`Retrieving DJ profile ID: ${djId}`);
@@ -106,7 +106,7 @@ const setDjBio = async (
 };
 
 const setDjEquipment = async (
-    djId: number,
+    djId: string,
     equipment: string
 ): Promise<ResultSetHeader> => {
     Logger.info(`Retrieving DJ profile ID: ${djId}`);
@@ -124,7 +124,7 @@ const setDjEquipment = async (
 };
 
 const setSoundcloudUrl = async (
-    djId: number,
+    djId: string,
     soundcloudUrl: string
 ): Promise<ResultSetHeader> => {
     Logger.info(`Retrieving DJ profile ID: ${djId}`);
@@ -142,7 +142,7 @@ const setSoundcloudUrl = async (
 };
 
 const setInstagramUrl = async (
-    djId: number,
+    djId: string,
     instagramUrl: string
 ): Promise<ResultSetHeader> => {
     Logger.info(`Retrieving DJ profile ID: ${djId}`);
@@ -160,7 +160,7 @@ const setInstagramUrl = async (
 };
 
 const setAvatarUrl = async (
-    djId: number,
+    djId: string,
     avatarUrl: string
 ): Promise<ResultSetHeader> => {
     Logger.info(`Setting image for user ${djId}`);
@@ -178,7 +178,7 @@ const setAvatarUrl = async (
 };
 
 const setBannerUrl = async (
-    djId: number,
+    djId: string,
     bannerUrl: string
 ): Promise<ResultSetHeader> => {
     Logger.info(`Setting image for user ${djId}`);
