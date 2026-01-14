@@ -1,7 +1,7 @@
 # MySQL scripts for dropping existing tables and recreating the database table structure
 
 -- =========================
--- Drop (order matters for FKs)
+-- ====== DROP TABLES ======
 -- =========================
 DROP TABLE IF EXISTS `DjGenres`;
 DROP TABLE IF EXISTS `DjProfiles`;
@@ -9,11 +9,10 @@ DROP TABLE IF EXISTS `Genres`;
 DROP TABLE IF EXISTS `Users`;
 
 -- =========================
--- Create tables
+-- ==== CREATE TABLES ======
 -- =========================
-
 CREATE TABLE `Users` (
-    `userId`       CHAR(36) NOT NULL,
+    `userId`       BINARY(16) NOT NULL,
     `email`        VARCHAR(255) NOT NULL UNIQUE,
     `password`     VARCHAR(255) NOT NULL,
     `firebaseUid`  VARCHAR(128) UNIQUE,
@@ -24,8 +23,8 @@ CREATE TABLE `Users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `DjProfiles` (
-    `djId`          CHAR(36) NOT NULL,
-    `userId`        CHAR(36) NOT NULL,
+    `djId`          BINARY(16) NOT NULL,
+    `userId`        BINARY(16) NOT NULL,
     `djName`        VARCHAR(100) NOT NULL,
     `bio`           VARCHAR(500) NULL,
     `location`      VARCHAR(100) NOT NULL,
@@ -45,9 +44,9 @@ CREATE TABLE `DjProfiles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `Genres` (
-    `genreId`  CHAR(36) NOT NULL,
+    `genreId`  BINARY(16) NOT NULL,
     `name`     VARCHAR(100) NOT NULL UNIQUE,
-    `parentId` CHAR(36) DEFAULT NULL,
+    `parentId` BINARY(16) DEFAULT NULL,
     PRIMARY KEY (`genreId`),
     KEY `idx_genres_parent` (`parentId`),
     CONSTRAINT `fk_genres_parent`
@@ -58,8 +57,8 @@ CREATE TABLE `Genres` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `DjGenres` (
-    `djId`    CHAR(36) NOT NULL,
-    `genreId` CHAR(36) NOT NULL,
+    `djId`    BINARY(16) NOT NULL,
+    `genreId` BINARY(16) NOT NULL,
     PRIMARY KEY (`djId`, `genreId`),
     KEY `idx_dj_genres_genre_dj` (`genreId`, `djId`),
     CONSTRAINT `fk_djgenres_to_djprofiles`

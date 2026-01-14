@@ -1,4 +1,5 @@
 import Logger from "../../config/logger";
+import { User } from "../types/user_types";
 
 export const returnUserData = (user: User, isAuthenticated: boolean) => {
     try {

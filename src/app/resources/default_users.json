@@ -1,6 +1,6 @@
 {
-  "properties": ["email", "password"],
-  "usersData": [
-    ["test@test.com", "password"]
-  ]
+    "properties": ["userId", "email", "password"],
+    "usersData": [
+        ["0193e606-963d-788c-9a40-36262444f24c", "test@test.com", "password"]
+    ]
 }

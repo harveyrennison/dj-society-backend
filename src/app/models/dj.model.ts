@@ -1,195 +1,141 @@
 import { ResultSetHeader } from "mysql2";
 import { getPool } from "../../config/db";
 import Logger from "../../config/logger";
+import { DjProfile } from "../types/dj_types";
 
-const create = async (profileData: DjProfileData): Promise<ResultSetHeader> => {
-    Logger.info(`Creating DJ profile for user ID: ${profileData.userId}`);
+// --- CREATE ---
+const create = async (profile: DjProfile): Promise<ResultSetHeader> => {
+    Logger.info(`Creating DJ profile for user UUID: ${profile.userId}`);
     const conn = await getPool().getConnection();
     try {
         const query = `
             INSERT INTO DjProfile (
-                userId, djName, bio, location, genres, equipment, soundcloudUrl, instagramUrl, avatarUrl, bannerUrl
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                djId, userId, djName, bio, location, genres, equipment, soundcloudUrl, instagramUrl, avatarUrl, bannerUrl
+            ) VALUES (UUID_TO_BIN(?), UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?, ?, ?, ?);
         `;
         const [rows] = await conn.query(query, [
-            profileData.userId,
-            profileData.djName,
-            profileData.bio,
-            profileData.location,
-            profileData.genres, // Stored as JSON string
-            profileData.equipment,
-            profileData.soundcloudUrl,
-            profileData.instagramUrl,
-            profileData.avatarUrl,
-            profileData.bannerUrl,
+            profile.djId,
+            profile.userId,
+            profile.djName,
+            profile.bio,
+            profile.location,
+            profile.genres,
+            profile.equipment,
+            profile.soundcloudUrl,
+            profile.instagramUrl,
+            profile.avatarUrl,
+            profile.bannerUrl,
         ]);
         return rows as ResultSetHeader;
-    } catch (err) {
-        Logger.error(`Error creating DJ profile: ${err.message}`);
-        throw new Error(`Failed to create DJ profile: ${err.message}`);
     } finally {
         await conn.release();
     }
 };
 
+// --- GETTERS ---
 const getFromUserId = async (userId: string): Promise<DjProfile[]> => {
-    Logger.info(`Retrieving DJ profile for user ID: ${userId}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "SELECT * FROM DjProfile WHERE userId = ?;";
+        const query = `
+            SELECT BIN_TO_UUID(djId) as djId, BIN_TO_UUID(userId) as userId,
+            djName, bio, location, genres, equipment, soundcloudUrl, instagramUrl, avatarUrl, bannerUrl
+            FROM DjProfile WHERE userId = UUID_TO_BIN(?);
+        `;
         const [rows] = await conn.query(query, [userId]);
         return rows as DjProfile[];
-    } catch (err) {
-        Logger.error(`Error retrieving DJ profile by user ID: ${err.message}`);
-        throw new Error(
-            `Failed to retrieve DJ profile by user ID: ${err.message}`
-        );
     } finally {
         await conn.release();
     }
 };
 
-// You might also want a function to view the profile by its own ID:
 const getFromProfileId = async (djId: string): Promise<DjProfile[]> => {
-    Logger.info(`Retrieving DJ profile ID: ${djId}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "SELECT * FROM DjProfiles WHERE djId = ?;";
+        const query = `
+            SELECT BIN_TO_UUID(djId) as djId, BIN_TO_UUID(userId) as userId,
+            djName, bio, location, genres, equipment, soundcloudUrl, instagramUrl, avatarUrl, bannerUrl
+            FROM DjProfile WHERE djId = UUID_TO_BIN(?);
+        `;
         const [rows] = await conn.query(query, [djId]);
         return rows as DjProfile[];
-    } catch (err) {
-        Logger.error(
-            `Error retrieving DJ profile by profile ID: ${err.message}`
-        );
-        throw new Error(
-            `Failed to retrieve DJ profile by profile ID: ${err.message}`
-        );
     } finally {
         await conn.release();
     }
 };
 
-const setDjName = async (
+// --- INDIVIDUAL GETTERS ---
+const getDjName = async (djId: string): Promise<string | null> => {
+    return getField(djId, "djName");
+};
+const getDjBio = async (djId: string): Promise<string | null> => {
+    return getField(djId, "bio");
+};
+const getDjLocation = async (djId: string): Promise<string | null> => {
+    return getField(djId, "location");
+};
+const getGenres = async (djId: string): Promise<string | null> => {
+    return getField(djId, "genres");
+};
+const getDjEquipment = async (djId: string): Promise<string | null> => {
+    return getField(djId, "equipment");
+};
+const getSoundcloudUrl = async (djId: string): Promise<string | null> => {
+    return getField(djId, "soundcloudUrl");
+};
+const getInstagramUrl = async (djId: string): Promise<string | null> => {
+    return getField(djId, "instagramUrl");
+};
+const getAvatarUrl = async (djId: string): Promise<string | null> => {
+    return getField(djId, "avatarUrl");
+};
+const getBannerUrl = async (djId: string): Promise<string | null> => {
+    return getField(djId, "bannerUrl");
+};
+
+// --- HELPER ---
+const getField = async (
     djId: string,
-    djName: string
-): Promise<ResultSetHeader> => {
-    Logger.info(`Retrieving DJ profile ID: ${djId}`);
+    field: string
+): Promise<string | null> => {
     const conn = await getPool().getConnection();
     try {
-        const query = "UPDATE DjProfiles SET djName = ? WHERE djId = ?;";
-        const [rows] = await conn.query(query, [djName, djId]);
-        return rows as ResultSetHeader;
-    } catch (err) {
-        Logger.error(`Error updating DJ name: ${err.message}`);
-        throw new Error(`Failed to update DJ name: ${err.message}`);
+        const query = `SELECT ${field} FROM DjProfile WHERE djId = UUID_TO_BIN(?);`;
+        const [rows] = await conn.query(query, [djId]);
+        const result = rows as any[];
+        return result.length > 0 ? result[0][field] : null;
     } finally {
         await conn.release();
     }
 };
 
-const setDjBio = async (
-    djId: string,
-    bio: string
-): Promise<ResultSetHeader> => {
-    Logger.info(`Retrieving DJ profile ID: ${djId}`);
-    const conn = await getPool().getConnection();
-    try {
-        const query = "UPDATE DjProfiles SET bio = ? WHERE djId = ?;";
-        const [rows] = await conn.query(query, [bio, djId]);
-        return rows as ResultSetHeader;
-    } catch (err) {
-        Logger.error(`Error updating DJ name: ${err.message}`);
-        throw new Error(`Failed to update DJ name: ${err.message}`);
-    } finally {
-        await conn.release();
-    }
-};
+// --- SETTERS ---
+const setDjName = (id: string, val: string) => updateField(id, "djName", val);
+const setDjBio = (id: string, val: string) => updateField(id, "bio", val);
+const setDjLocation = (id: string, val: string) =>
+    updateField(id, "location", val);
+const setGenres = (id: string, val: string) => updateField(id, "genres", val);
+const setDjEquipment = (id: string, val: string) =>
+    updateField(id, "equipment", val);
+const setSoundcloudUrl = (id: string, val: string) =>
+    updateField(id, "soundcloudUrl", val);
+const setInstagramUrl = (id: string, val: string) =>
+    updateField(id, "instagramUrl", val);
+const setAvatarUrl = (id: string, val: string) =>
+    updateField(id, "avatarUrl", val);
+const setBannerUrl = (id: string, val: string) =>
+    updateField(id, "bannerUrl", val);
 
-const setDjEquipment = async (
+// --- HELPER ---
+const updateField = async (
     djId: string,
-    equipment: string
+    field: string,
+    value: string | null
 ): Promise<ResultSetHeader> => {
-    Logger.info(`Retrieving DJ profile ID: ${djId}`);
     const conn = await getPool().getConnection();
     try {
-        const query = "UPDATE DjProfiles SET equipment = ? WHERE djId = ?;";
-        const [rows] = await conn.query(query, [equipment, djId]);
+        const query = `UPDATE DjProfile SET ${field} = ? WHERE djId = UUID_TO_BIN(?);`;
+        const [rows] = await conn.query(query, [value, djId]);
         return rows as ResultSetHeader;
-    } catch (err) {
-        Logger.error(`Error updating DJ name: ${err.message}`);
-        throw new Error(`Failed to update DJ name: ${err.message}`);
-    } finally {
-        await conn.release();
-    }
-};
-
-const setSoundcloudUrl = async (
-    djId: string,
-    soundcloudUrl: string
-): Promise<ResultSetHeader> => {
-    Logger.info(`Retrieving DJ profile ID: ${djId}`);
-    const conn = await getPool().getConnection();
-    try {
-        const query = "UPDATE DjProfiles SET soundcloudUrl = ? WHERE djId = ?;";
-        const [rows] = await conn.query(query, [soundcloudUrl, djId]);
-        return rows as ResultSetHeader;
-    } catch (err) {
-        Logger.error(`Error updating DJ name: ${err.message}`);
-        throw new Error(`Failed to update DJ name: ${err.message}`);
-    } finally {
-        await conn.release();
-    }
-};
-
-const setInstagramUrl = async (
-    djId: string,
-    instagramUrl: string
-): Promise<ResultSetHeader> => {
-    Logger.info(`Retrieving DJ profile ID: ${djId}`);
-    const conn = await getPool().getConnection();
-    try {
-        const query = "UPDATE DjProfiles SET instagramUrl = ? WHERE djId = ?;";
-        const [rows] = await conn.query(query, [instagramUrl, djId]);
-        return rows as ResultSetHeader;
-    } catch (err) {
-        Logger.error(`Error updating DJ name: ${err.message}`);
-        throw new Error(`Failed to update DJ name: ${err.message}`);
-    } finally {
-        await conn.release();
-    }
-};
-
-const setAvatarUrl = async (
-    djId: string,
-    avatarUrl: string
-): Promise<ResultSetHeader> => {
-    Logger.info(`Setting image for user ${djId}`);
-    const conn = await getPool().getConnection();
-    try {
-        const query = "UPDATE Users SET avatarUrl = ? WHERE djId = ?;";
-        const [rows] = await conn.query(query, [avatarUrl, djId]);
-        return rows as ResultSetHeader;
-    } catch (err) {
-        Logger.error(`Error setting image for user ${djId}: ${err.message}`);
-        throw new Error(`Failed to set user image: ${err.message}`);
-    } finally {
-        await conn.release();
-    }
-};
-
-const setBannerUrl = async (
-    djId: string,
-    bannerUrl: string
-): Promise<ResultSetHeader> => {
-    Logger.info(`Setting image for user ${djId}`);
-    const conn = await getPool().getConnection();
-    try {
-        const query = "UPDATE Users SET bannerUrl = ? WHERE djId = ?;";
-        const [rows] = await conn.query(query, [bannerUrl, djId]);
-        return rows as ResultSetHeader;
-    } catch (err) {
-        Logger.error(`Error setting image for user ${djId}: ${err.message}`);
-        throw new Error(`Failed to set user image: ${err.message}`);
     } finally {
         await conn.release();
     }
@@ -197,13 +143,24 @@ const setBannerUrl = async (
 
 export {
     create,
+    getAvatarUrl,
+    getBannerUrl,
+    getDjBio,
+    getDjEquipment,
+    getDjLocation,
+    getDjName,
     getFromProfileId,
     getFromUserId,
+    getGenres,
+    getInstagramUrl,
+    getSoundcloudUrl,
     setAvatarUrl,
     setBannerUrl,
     setDjBio,
     setDjEquipment,
+    setDjLocation,
     setDjName,
+    setGenres,
     setInstagramUrl,
     setSoundcloudUrl,
 };

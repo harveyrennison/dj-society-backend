@@ -7,8 +7,8 @@ const create = async (user: User): Promise<ResultSetHeader> => {
     const conn = await getPool().getConnection();
     try {
         const query = `
-            INSERT INTO Users (userId, firebaseUid, email, password, firstName, lastName) 
-            VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?);
+            INSERT INTO Users (userId, firebaseUid, email, password, firstName, lastName, dateOfBirth)
+            VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?);
         `;
         const values = [
             user.userId,
@@ -17,6 +17,7 @@ const create = async (user: User): Promise<ResultSetHeader> => {
             user.password ?? null,
             user.firstName ?? null,
             user.lastName ?? null,
+            user.dateOfBirth ?? null,
         ];
         const [rows] = await conn.query(query, values);
         return rows as ResultSetHeader;
@@ -32,8 +33,8 @@ const getFromFirebaseUid = async (firebaseUid: string): Promise<User[]> => {
     const conn = await getPool().getConnection();
     try {
         const query = `
-            SELECT BIN_TO_UUID(userId) as userId, email, firebaseUid, firstName, lastName 
-            FROM Users 
+            SELECT BIN_TO_UUID(userId) as userId, email, firebaseUid, firstName, lastName, dateOfBirth
+            FROM Users
             WHERE firebaseUid = ?;
         `;
         const [rows] = await conn.query(query, [firebaseUid]);
@@ -52,8 +53,8 @@ const getFromId = async (userId: string): Promise<User[]> => {
     const conn = await getPool().getConnection();
     try {
         const query = `
-            SELECT BIN_TO_UUID(userId) as userId, email, firebaseUid, firstName, lastName 
-            FROM Users 
+            SELECT BIN_TO_UUID(userId) as userId, email, firebaseUid, firstName, lastName, dateOfBirth
+            FROM Users
             WHERE userId = UUID_TO_BIN(?);
         `;
         const [rows] = await conn.query(query, [userId]);
@@ -70,8 +71,8 @@ const getFromEmail = async (email: string): Promise<User[]> => {
     const conn = await getPool().getConnection();
     try {
         const query = `
-            SELECT BIN_TO_UUID(userId) as userId, email, firebaseUid, firstName, lastName 
-            FROM Users 
+            SELECT BIN_TO_UUID(userId) as userId, email, firebaseUid, firstName, lastName, dateOfBirth
+            FROM Users
             WHERE email = ?;
         `;
         const [rows] = await conn.query(query, [email]);
@@ -156,11 +157,114 @@ const setPassword = async (
     }
 };
 
+const setDateOfBirth = async (
+    userId: string,
+    dateOfBirth: string
+): Promise<ResultSetHeader> => {
+    const conn = await getPool().getConnection();
+    try {
+        const query =
+            "UPDATE Users SET dateOfBirth = ? WHERE userId = UUID_TO_BIN(?);";
+        const [rows] = await conn.query(query, [dateOfBirth, userId]);
+        return rows as ResultSetHeader;
+    } catch (err: any) {
+        Logger.error(`Error updating date of birth: ${err.message}`);
+        throw new Error(`Failed to update date of birth: ${err.message}`);
+    } finally {
+        await conn.release();
+    }
+};
+
+const getDateOfBirth = async (userId: string): Promise<string | null> => {
+    const conn = await getPool().getConnection();
+    try {
+        const query = `
+            SELECT dateOfBirth
+            FROM Users
+            WHERE userId = UUID_TO_BIN(?);
+        `;
+        const [rows] = await conn.query(query, [userId]);
+        const result = rows as any[];
+        return result.length > 0 ? result[0].dateOfBirth : null;
+    } catch (err: any) {
+        Logger.error(`Error fetching date of birth: ${err.message}`);
+        throw new Error(`Failed to retrieve date of birth: ${err.message}`);
+    } finally {
+        await conn.release();
+    }
+};
+
+const getFullName = async (userId: string): Promise<string | null> => {
+    const conn = await getPool().getConnection();
+    try {
+        const query = `
+            SELECT firstName, lastName
+            FROM Users
+            WHERE userId = UUID_TO_BIN(?);
+        `;
+        const [rows] = await conn.query(query, [userId]);
+        const result = rows as any[];
+        if (result.length > 0) {
+            const { firstName, lastName } = result[0];
+            return firstName && lastName ? `${firstName} ${lastName}` : null;
+        }
+        return null;
+    } catch (err: any) {
+        Logger.error(`Error fetching full name: ${err.message}`);
+        throw new Error(`Failed to retrieve full name: ${err.message}`);
+    } finally {
+        await conn.release();
+    }
+};
+
+const getFirstName = async (userId: string): Promise<string | null> => {
+    const conn = await getPool().getConnection();
+    try {
+        const query = `
+            SELECT firstName
+            FROM Users
+            WHERE userId = UUID_TO_BIN(?);
+        `;
+        const [rows] = await conn.query(query, [userId]);
+        const result = rows as any[];
+        return result.length > 0 ? result[0].firstName : null;
+    } catch (err: any) {
+        Logger.error(`Error fetching first name: ${err.message}`);
+        throw new Error(`Failed to retrieve first name: ${err.message}`);
+    } finally {
+        await conn.release();
+    }
+};
+
+const getLastName = async (userId: string): Promise<string | null> => {
+    const conn = await getPool().getConnection();
+    try {
+        const query = `
+            SELECT lastName
+            FROM Users
+            WHERE userId = UUID_TO_BIN(?);
+        `;
+        const [rows] = await conn.query(query, [userId]);
+        const result = rows as any[];
+        return result.length > 0 ? result[0].lastName : null;
+    } catch (err: any) {
+        Logger.error(`Error fetching last name: ${err.message}`);
+        throw new Error(`Failed to retrieve last name: ${err.message}`);
+    } finally {
+        await conn.release();
+    }
+};
+
 export {
     create,
+    getDateOfBirth,
+    getFirstName,
     getFromEmail,
     getFromFirebaseUid,
     getFromId,
+    getFullName,
+    getLastName,
+    setDateOfBirth,
     setEmail,
     setFirstName,
     setLastName,

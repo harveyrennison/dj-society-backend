@@ -17,7 +17,6 @@ const register = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password, firstName, lastName } = req.body;
 
-        // 1. Validation
         const validation = await AJVvalidate(schemas.user_register, req.body);
         if (validation !== true) {
             res.status(400).json({
@@ -35,7 +34,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // 3. Create in Firebase 
+        // 3. Create in Firebase
         const displayName = [firstName, lastName].filter(Boolean).join(" ");
         const firebaseUser = await admin.auth().createUser({
             email,
@@ -48,7 +47,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
         const newUser: User = {
             userId: uuidv7(),
             firebaseUid: firebaseUser.uid,
-            email: email,
+            email,
             password: passwordHash,
             firstName: firstName || null,
             lastName: lastName || null,
@@ -76,6 +75,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
 const login = async (req: Request, res: Response): Promise<void> => {
     try {
         const { googleToken, email, password } = req.body;
+        let firebaseCustomToken: string;
 
         if (googleToken) {
             // --- GOOGLE LOGIN FLOW ---
@@ -84,8 +84,9 @@ const login = async (req: Request, res: Response): Promise<void> => {
                 audience: GOOGLE_CLIENT_ID,
             });
             const payload = ticket.getPayload();
-            if (!payload || !payload.email)
+            if (!payload || !payload.email) {
                 throw new Error("Invalid Google Payload");
+            }
 
             const verifiedEmail = payload.email;
             let userRecord = (await usersModel.getFromEmail(verifiedEmail))[0];
@@ -132,7 +133,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
                 userRecord = newUser;
             }
 
-            const firebaseCustomToken = await admin
+            firebaseCustomToken = await admin
                 .auth()
                 .createCustomToken(userRecord.firebaseUid);
 
@@ -156,7 +157,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        const firebaseCustomToken = await admin
+        firebaseCustomToken = await admin
             .auth()
             .createCustomToken(user.firebaseUid);
 
@@ -204,8 +205,9 @@ const view = async (req: Request, res: Response): Promise<void> => {
         if (user.firebaseUid === authenticatedFirebaseUID) {
             res.status(200).json(user);
         } else {
-            // Public view: Only return the public UUID
-            res.status(200).json({ userId: user.userId });
+            res.status(403).json({
+                error: "Forbidden: can only view your own profile.",
+            });
         }
     } catch (err) {
         Logger.error(err);
