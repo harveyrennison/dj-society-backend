@@ -15,7 +15,7 @@ import { User } from "../types/user_types";
 
 const register = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { email, password, firstName, lastName } = req.body;
+        const { email, password, firstName, lastName, dateOfBirth } = req.body;
 
         const validation = await AJVvalidate(schemas.user_register, req.body);
         if (validation !== true) {
@@ -51,6 +51,7 @@ const register = async (req: Request, res: Response): Promise<void> => {
             password: passwordHash,
             firstName: firstName || null,
             lastName: lastName || null,
+            dateOfBirth: dateOfBirth || null,
         };
 
         // 5. Save to MySQL using the object-based create function
@@ -102,7 +103,6 @@ const login = async (req: Request, res: Response): Promise<void> => {
                         parts.length > 1 ? parts.slice(1).join(" ") : null;
                 }
 
-                // Ensure they have a Firebase account
                 let fUid: string;
                 try {
                     const fUser = await admin
@@ -127,6 +127,7 @@ const login = async (req: Request, res: Response): Promise<void> => {
                     password: placeholderHash,
                     firstName,
                     lastName,
+                    dateOfBirth: null,
                 };
 
                 await usersModel.create(newUser);
@@ -190,7 +191,7 @@ const logout = async (req: Request, res: Response): Promise<void> => {
 
 const view = async (req: Request, res: Response): Promise<void> => {
     try {
-        const targetUserId = req.params.id; // This is a UUID string
+        const targetUserId = req.params.id;
 
         const users = await usersModel.getFromId(targetUserId);
         if (users.length === 0) {
@@ -199,11 +200,11 @@ const view = async (req: Request, res: Response): Promise<void> => {
         }
 
         const user = users[0];
-        const authenticatedFirebaseUID = res.locals.firebaseUid as string;
+        const authenticatedFirebaseUID = res.locals.firebaseUid;
 
-        // If the logged-in user is viewing their own profile
         if (user.firebaseUid === authenticatedFirebaseUID) {
-            res.status(200).json(user);
+            const { password, ...userWithoutPassword } = user;
+            res.status(200).json(userWithoutPassword);
         } else {
             res.status(403).json({
                 error: "Forbidden: can only view your own profile.",

@@ -54,7 +54,8 @@ const loadData = async (): Promise<any> => {
  * @returns {Promise<void>}
  */
 const populateDefaultUsers = async (): Promise<void> => {
-    const createSQL = "INSERT INTO `Users` (`email`, `password`) VALUES ?";
+    const createSQL =
+        "INSERT INTO `Users` (`userId`, `email`, `password`, `firebaseUid`, `firstName`, `lastName`, `dateOfBirth`) VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?)";
 
     const properties = defaultUsers.properties;
     let usersData = defaultUsers.usersData;
@@ -68,11 +69,23 @@ const populateDefaultUsers = async (): Promise<void> => {
         usersData.map((user: any) => changePasswordToHash(user, passwordIndex))
     );
 
-    try {
-        await getPool().query(createSQL, [usersData]);
-    } catch (err) {
-        Logger.error(err.sql);
-        throw err;
+    // Insert each user individually
+    for (const user of usersData) {
+        const values = [
+            user[0], // userId (string UUID)
+            user[1], // email
+            user[2], // password (hashed)
+            null, // firebaseUid
+            null, // firstName
+            null, // lastName
+            null, // dateOfBirth
+        ];
+        try {
+            await getPool().query(createSQL, values);
+        } catch (err) {
+            Logger.error(`Error inserting user ${user[1]}: ${err.sql}`);
+            throw err;
+        }
     }
 };
 

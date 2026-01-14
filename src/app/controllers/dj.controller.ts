@@ -30,7 +30,6 @@ const prepareDjProfile = (profile: DjProfile) => {
 
 const createProfile = async (req: Request, res: Response): Promise<void> => {
     try {
-        // 1. Authenticate & Lookup local userId
         const firebaseUid = res.locals.firebaseUid;
         const users = await usersModel.getFromFirebaseUid(firebaseUid);
         if (users.length === 0) {
@@ -39,7 +38,6 @@ const createProfile = async (req: Request, res: Response): Promise<void> => {
         }
         const userId = users[0].userId;
 
-        // 2. Prevent duplicate profile creation
         const existing = await djProfilesModel.getFromUserId(userId);
         if (existing.length > 0) {
             res.status(403).json({
@@ -48,7 +46,6 @@ const createProfile = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // 3. Request Validation
         const validation = await AJVvalidate(
             schemas.dj_profile_create,
             req.body
@@ -58,7 +55,6 @@ const createProfile = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // 4. Construct the Data Object using your types
         const djId = uuidv7();
         const profileData: DjProfile = {
             djId,
@@ -74,7 +70,6 @@ const createProfile = async (req: Request, res: Response): Promise<void> => {
             bannerUrl: req.body.bannerUrl || "",
         };
 
-        // 5. Execute Creation
         await djProfilesModel.create(profileData);
 
         res.status(201).json({
@@ -89,7 +84,7 @@ const createProfile = async (req: Request, res: Response): Promise<void> => {
 
 const viewProfile = async (req: Request, res: Response): Promise<void> => {
     try {
-        const djId = req.params.id; // UUID string
+        const djId = req.params.id;
 
         const profiles = await djProfilesModel.getFromProfileId(djId);
         if (profiles.length === 0) {
@@ -97,7 +92,6 @@ const viewProfile = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        // Using the preparation helper to clean the data
         const cleanProfile = prepareDjProfile(profiles[0]);
         res.status(200).json(cleanProfile);
     } catch (err) {

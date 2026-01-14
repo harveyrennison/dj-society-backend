@@ -1,69 +1,83 @@
 {
-  "user_register": {
-    "type": "object",
-    "properties": {
-      "email": {
-        "type": "string",
-        "format": "email",
-        "minLength": 1,
-        "maxLength": 256
-      },
-      "password": {
-        "type": "string",
-        "format": "password",
-        "minLength": 6,
-        "maxLength": 64
-      }
+    "user_register": {
+        "type": "object",
+        "properties": {
+            "email": {
+                "type": "string",
+                "format": "email",
+                "minLength": 1,
+                "maxLength": 256
+            },
+            "password": {
+                "type": "string",
+                "format": "password",
+                "minLength": 6,
+                "maxLength": 64
+            },
+            "firstName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+            },
+            "lastName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+            },
+            "dateOfBirth": {
+                "type": "string",
+                "format": "date"
+            }
+        },
+        "required": ["email", "password"],
+        "additionalProperties": false
     },
-    "required": ["email", "password"],
-    "additionalProperties": false
-  },
-  "user_login": {
-    "type": "object",
-    "properties": {
-      "email": {
-        "type": "string",
-        "format": "email",
-        "minLength": 1,
-        "maxLength": 256
-      },
-      "password": {
-        "type": "string",
-        "format": "password",
-        "minLength": 6,
-        "maxLength": 64
-      }
+    "user_login": {
+        "type": "object",
+        "properties": {
+            "email": {
+                "type": "string",
+                "format": "email",
+                "minLength": 1,
+                "maxLength": 256
+            },
+            "password": {
+                "type": "string",
+                "format": "password",
+                "minLength": 6,
+                "maxLength": 64
+            }
+        },
+        "required": ["email", "password"],
+        "additionalProperties": false
     },
-    "required": ["email", "password"],
-    "additionalProperties": false
-  },
-  "dj_profile_create": {
-    "type": "object",
-    "properties": {
-      "djName": { "type": "string", "minLength": 1, "maxLength": 50 },
-      "bio": { "type": "string", "maxLength": 500 },
-      "location": { "type": "string", "minLength": 1, "maxLength": 100 },
-      "genres": {
-        "type": "array",
-        "minItems": 1,
-        "maxItems": 5,
-        "items": {
-          "type": "object",
-          "properties": {
-            "genreId": { "type": "number", "minimum": 0 },
-            "genreName": { "type": "string", "minLength": 1 }
-          },
-          "required": ["genreId", "genreName"],
-          "additionalProperties": false
-        }
-      },
-      "equipment": { "type": "string", "maxLength": 200 },
-      "soundcloudUrl": { "type": "string", "format": "uri" },
-      "instagramUrl": { "type": "string", "format": "uri" },
-      "avatarUrl": { "type": "string", "format": "uri" },
-      "bannerUrl": { "type": "string", "format": "uri" }
-    },
-    "required": ["djName", "location", "genres"],
-    "additionalProperties": false
-  }
+    "dj_profile_create": {
+        "type": "object",
+        "properties": {
+            "djName": { "type": "string", "minLength": 1, "maxLength": 50 },
+            "bio": { "type": "string", "maxLength": 500 },
+            "location": { "type": "string", "minLength": 1, "maxLength": 100 },
+            "genres": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 5,
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "genreId": { "type": "number", "minimum": 0 },
+                        "genreName": { "type": "string", "minLength": 1 }
+                    },
+                    "required": ["genreId", "genreName"],
+                    "additionalProperties": false
+                }
+            },
+            "equipment": { "type": "string", "maxLength": 200 },
+            "soundcloudUrl": { "type": "string", "format": "uri" },
+            "instagramUrl": { "type": "string", "format": "uri" },
+            "avatarUrl": { "type": "string", "format": "uri" },
+            "bannerUrl": { "type": "string", "format": "uri" }
+        },
+        "required": ["djName", "location", "genres"],
+        "additionalProperties": false
+    }
 }
