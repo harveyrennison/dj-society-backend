@@ -6,14 +6,11 @@ import * as usersModel from "../models/user.model";
 import * as schemas from "../resources/schemas.json";
 import { AJVvalidate } from "../services/AJVvalidate";
 import * as passwords from "../services/passwords";
-import {
-    CLIENT,
-    GOOGLE_CLIENT_ID,
-    GOOGLE_USER_PASSWORD_PLACEHOLDER,
-} from "../types/constants";
+import { GOOGLE_USER_PASSWORD_PLACEHOLDER } from "../types/constants";
 import { User } from "../types/user_types";
 
 const register = async (req: Request, res: Response): Promise<void> => {
+    console.log("Register request body:", req.body);
     try {
         const { email, password, firstName, lastName, dateOfBirth } = req.body;
 
@@ -74,79 +71,20 @@ const register = async (req: Request, res: Response): Promise<void> => {
 };
 
 const login = async (req: Request, res: Response): Promise<void> => {
+    console.log("Login request body:", req.body);
     try {
-        const { googleToken, email, password } = req.body;
-        let firebaseCustomToken: string;
+        const { email, password } = req.body;
 
-        if (googleToken) {
-            // --- GOOGLE LOGIN FLOW ---
-            const ticket = await CLIENT.verifyIdToken({
-                idToken: googleToken,
-                audience: GOOGLE_CLIENT_ID,
-            });
-            const payload = ticket.getPayload();
-            if (!payload || !payload.email) {
-                throw new Error("Invalid Google Payload");
-            }
-
-            const verifiedEmail = payload.email;
-            let userRecord = (await usersModel.getFromEmail(verifiedEmail))[0];
-
-            if (!userRecord) {
-                // Split Google name into first/last
-                let firstName: string | null = null;
-                let lastName: string | null = null;
-                if (payload.name) {
-                    const parts = payload.name.split(" ");
-                    firstName = parts[0] || null;
-                    lastName =
-                        parts.length > 1 ? parts.slice(1).join(" ") : null;
-                }
-
-                let fUid: string;
-                try {
-                    const fUser = await admin
-                        .auth()
-                        .getUserByEmail(verifiedEmail);
-                    fUid = fUser.uid;
-                } catch {
-                    const fUser = await admin
-                        .auth()
-                        .createUser({ email: verifiedEmail });
-                    fUid = fUser.uid;
-                }
-
-                const placeholderHash = await passwords.hash(
-                    GOOGLE_USER_PASSWORD_PLACEHOLDER
-                );
-
-                const newUser: User = {
-                    userId: uuidv7(),
-                    firebaseUid: fUid,
-                    email: verifiedEmail,
-                    password: placeholderHash,
-                    firstName,
-                    lastName,
-                    dateOfBirth: null,
-                };
-
-                await usersModel.create(newUser);
-                userRecord = newUser;
-            }
-
-            firebaseCustomToken = await admin
-                .auth()
-                .createCustomToken(userRecord.firebaseUid);
-
-            res.status(200).json({
-                firebaseToken: firebaseCustomToken,
-                userId: userRecord.userId,
-                message: "Google login successful",
+        // Validate input
+        const validation = await AJVvalidate(schemas.user_login, req.body);
+        if (validation !== true) {
+            res.status(400).json({
+                error: `Bad Request: ${validation.toString()}`,
             });
             return;
         }
 
-        // --- STANDARD EMAIL/PASSWORD FLOW ---
+        // Check user exists and password is correct
         const users = await usersModel.getFromEmail(email);
         const user = users?.[0];
 
@@ -158,7 +96,8 @@ const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        firebaseCustomToken = await admin
+        // Generate Firebase custom token
+        const firebaseCustomToken = await admin
             .auth()
             .createCustomToken(user.firebaseUid);
 
@@ -170,6 +109,77 @@ const login = async (req: Request, res: Response): Promise<void> => {
     } catch (err: any) {
         Logger.error("Login Error:", err);
         res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+const googleLogin = async (req: Request, res: Response): Promise<void> => {
+    console.log("Google login request body:", req.body);
+    try {
+        const { idToken } = req.body;
+
+        if (!idToken) {
+            res.status(400).json({ error: "idToken is required" });
+            return;
+        }
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+        // Firebase decoded token contains the same info as Google's payload
+        const verifiedEmail = decodedToken.email;
+        if (!verifiedEmail) {
+            res.status(400).json({ error: "Invalid token: Email missing" });
+            return;
+        }
+        // --- CHANGE END ---
+
+        let userRecord = (await usersModel.getFromEmail(verifiedEmail))[0];
+
+        if (!userRecord) {
+            // Use decodedToken properties (name, picture, etc.)
+            let firstName: string | null = null;
+            let lastName: string | null = null;
+
+            if (decodedToken.name) {
+                const parts = decodedToken.name.split(" ");
+                firstName = parts[0] || null;
+                lastName = parts.length > 1 ? parts.slice(1).join(" ") : null;
+            }
+
+            // The rest of your registration logic remains the same...
+            const fUid = decodedToken.uid; // Use the UID directly from the verified token
+
+            const placeholderHash = await passwords.hash(
+                GOOGLE_USER_PASSWORD_PLACEHOLDER
+            );
+
+            const newUser: User = {
+                userId: uuidv7(),
+                firebaseUid: fUid,
+                email: verifiedEmail,
+                password: placeholderHash,
+                firstName,
+                lastName,
+                dateOfBirth: null,
+            };
+
+            await usersModel.create(newUser);
+            userRecord = newUser;
+        }
+
+        const firebaseCustomToken = await admin
+            .auth()
+            .createCustomToken(userRecord.firebaseUid);
+
+        res.status(200).json({
+            firebaseToken: firebaseCustomToken,
+            userId: userRecord.userId,
+            message: "Google login successful",
+        });
+    } catch (err: any) {
+        Logger.error("Google Login Error:", err);
+        res.status(500).json({
+            error: "Internal Server Error",
+            message: err.message,
+        });
     }
 };
 
@@ -216,4 +226,4 @@ const view = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export { login, logout, register, view };
+export { googleLogin, login, logout, register, view };
