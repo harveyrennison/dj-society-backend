@@ -255,6 +255,29 @@ const getLastName = async (userId: string): Promise<string | null> => {
     }
 };
 
+const update = async (
+    userId: string,
+    updates: Partial<
+        Pick<User, "firstName" | "lastName" | "email" | "dateOfBirth">
+    >
+): Promise<ResultSetHeader> => {
+    const conn = await getPool().getConnection();
+    try {
+        const fields = Object.keys(updates);
+        const values = Object.values(updates);
+        const setClause = fields.map((field) => `${field} = ?`).join(", ");
+        const query = `UPDATE Users SET ${setClause} WHERE userId = UUID_TO_BIN(?);`;
+        values.push(userId);
+        const [rows] = await conn.query(query, values);
+        return rows as ResultSetHeader;
+    } catch (err: any) {
+        Logger.error(`Error updating user: ${err.message}`);
+        throw new Error(`Failed to update user: ${err.message}`);
+    } finally {
+        await conn.release();
+    }
+};
+
 export {
     create,
     getDateOfBirth,
@@ -269,4 +292,5 @@ export {
     setFirstName,
     setLastName,
     setPassword,
+    update,
 };

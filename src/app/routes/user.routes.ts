@@ -11,5 +11,6 @@ router.post("/logout", firebaseAuth, userController.logout);
 // router.post("/settings", firebaseAuth, userController.settings);
 
 router.get("/:id", firebaseAuth, userController.view);
+router.patch("/:id", firebaseAuth, userController.update);
 
 export default router;

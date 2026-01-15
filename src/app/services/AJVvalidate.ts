@@ -1,8 +1,21 @@
 import Ajv from "ajv";
+import addFormats from "ajv-formats";
 
-const ajv = new Ajv({ removeAdditional: "all", strict: false, allErrors: true});
+const ajv = new Ajv({
+    removeAdditional: "all",
+    strict: false,
+    allErrors: true,
+});
 
-ajv.addFormat("email", /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i);
+addFormats(ajv);
+ajv.addFormat("email", (data: string) => {
+    const emailRegex =
+        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+    if (!emailRegex.test(data)) { return false; }
+
+    const tld = data.split(".").pop();
+    return tld && tld.length >= 2 && tld.length <= 6;
+});
 ajv.addFormat("password", /^.{6,}$/);
 ajv.addFormat("binary", /.*/);
 ajv.addFormat("integer", /^\d+$/);
@@ -24,4 +37,4 @@ const AJVvalidate = async (schema: object, data: any) => {
     }
 };
 
-export {AJVvalidate};
+export { AJVvalidate };

@@ -225,5 +225,50 @@ const view = async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
+const update = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const targetUserId = req.params.id;
+        const { firstName, lastName, email, dateOfBirth } = req.body;
 
-export { googleLogin, login, logout, register, view };
+        const users = await usersModel.getFromId(targetUserId);
+        if (users.length === 0) {
+            res.status(404).json({ error: "User not found." });
+            return;
+        }
+
+        const user = users[0];
+        const authenticatedFirebaseUID = res.locals.firebaseUid;
+
+        if (user.firebaseUid !== authenticatedFirebaseUID) {
+            res.status(403).json({
+                error: "Forbidden: can only update your own profile.",
+            });
+            return;
+        }
+
+        const validation = await AJVvalidate(schemas.user_update, req.body);
+        if (validation !== true) {
+            res.status(400).json({
+                error: `Bad Request: ${validation.toString()}`,
+            });
+            return;
+        }
+
+        const updateData: any = {};
+        if (firstName !== undefined) { updateData.firstName = firstName || null; }
+        if (lastName !== undefined) { updateData.lastName = lastName || null; }
+        if (email !== undefined) { updateData.email = email || null; }
+        if (dateOfBirth !== undefined) {
+            updateData.dateOfBirth = dateOfBirth || null;
+        }
+
+        await usersModel.update(targetUserId, updateData);
+
+        res.status(200).json({ message: "User updated successfully." });
+    } catch (err) {
+        Logger.error(err);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+export { googleLogin, login, logout, register, update, view };

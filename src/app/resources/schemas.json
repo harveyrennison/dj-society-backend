@@ -15,17 +15,15 @@
                 "maxLength": 64
             },
             "firstName": {
-                "type": "string",
-                "minLength": 1,
+                "type": ["string", "null"],
                 "maxLength": 64
             },
             "lastName": {
-                "type": "string",
-                "minLength": 1,
+                "type": ["string", "null"],
                 "maxLength": 64
             },
             "dateOfBirth": {
-                "type": "string",
+                "type": ["string", "null"],
                 "format": "date"
             }
         },
@@ -49,6 +47,31 @@
             }
         },
         "required": ["email", "password"],
+        "additionalProperties": false
+    },
+    "user_update": {
+        "type": "object",
+        "properties": {
+            "firstName": {
+                "type": ["string", "null"],
+                "maxLength": 64
+            },
+            "lastName": {
+                "type": ["string", "null"],
+                "maxLength": 64
+            },
+            "email": {
+                "type": "string",
+                "format": "email",
+                "minLength": 1,
+                "maxLength": 256
+            },
+            "dateOfBirth": {
+                "type": ["string", "null"],
+                "format": "date"
+            }
+        },
+        "required": ["email"],
         "additionalProperties": false
     },
     "dj_profile_create": {
