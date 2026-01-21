@@ -7,8 +7,8 @@ const create = async (user: User): Promise<ResultSetHeader> => {
     const conn = await getPool().getConnection();
     try {
         const query = `
-            INSERT INTO Users (userId, firebaseUid, email, password, firstName, lastName, dateOfBirth)
-            VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?);
+            INSERT INTO Users (userId, firebaseUid, email, password, firstName, lastName, dateOfBirth, profilePictureFilename)
+            VALUES (UUID_TO_BIN(?), ?, ?, ?, ?, ?, ?, ?);
         `;
         const values = [
             user.userId,
@@ -18,6 +18,7 @@ const create = async (user: User): Promise<ResultSetHeader> => {
             user.firstName ?? null,
             user.lastName ?? null,
             user.dateOfBirth ?? null,
+            user.profilePictureFilename ?? null,
         ];
         const [rows] = await conn.query(query, values);
         return rows as ResultSetHeader;
@@ -33,7 +34,7 @@ const getFromFirebaseUid = async (firebaseUid: string): Promise<User[]> => {
     const conn = await getPool().getConnection();
     try {
         const query = `
-            SELECT BIN_TO_UUID(userId) as userId, email, firebaseUid, firstName, lastName, dateOfBirth
+            SELECT BIN_TO_UUID(userId) as userId, email, firebaseUid, firstName, lastName, dateOfBirth, profilePictureFilename
             FROM Users
             WHERE firebaseUid = ?;
         `;
@@ -42,7 +43,7 @@ const getFromFirebaseUid = async (firebaseUid: string): Promise<User[]> => {
     } catch (err: any) {
         Logger.error(`Error fetching user by Firebase UID: ${err.message}`);
         throw new Error(
-            `Failed to retrieve user by Firebase UID: ${err.message}`
+            `Failed to retrieve user by Firebase UID: ${err.message}`,
         );
     } finally {
         await conn.release();
@@ -53,7 +54,7 @@ const getFromId = async (userId: string): Promise<User[]> => {
     const conn = await getPool().getConnection();
     try {
         const query = `
-            SELECT BIN_TO_UUID(userId) as userId, email, firebaseUid, firstName, lastName, dateOfBirth
+            SELECT BIN_TO_UUID(userId) as userId, email, firebaseUid, firstName, lastName, dateOfBirth, profilePictureFilename
             FROM Users
             WHERE userId = UUID_TO_BIN(?);
         `;
@@ -71,7 +72,7 @@ const getFromEmail = async (email: string): Promise<User[]> => {
     const conn = await getPool().getConnection();
     try {
         const query = `
-            SELECT BIN_TO_UUID(userId) as userId, email, firebaseUid, firstName, lastName, dateOfBirth
+            SELECT BIN_TO_UUID(userId) as userId, email, firebaseUid, firstName, lastName, dateOfBirth, profilePictureFilename
             FROM Users
             WHERE email = ?;
         `;
@@ -87,7 +88,7 @@ const getFromEmail = async (email: string): Promise<User[]> => {
 
 const setEmail = async (
     userId: string,
-    email: string
+    email: string,
 ): Promise<ResultSetHeader> => {
     const conn = await getPool().getConnection();
     try {
@@ -105,7 +106,7 @@ const setEmail = async (
 
 const setFirstName = async (
     userId: string,
-    firstName: string
+    firstName: string,
 ): Promise<ResultSetHeader> => {
     const conn = await getPool().getConnection();
     try {
@@ -123,7 +124,7 @@ const setFirstName = async (
 
 const setLastName = async (
     userId: string,
-    lastName: string
+    lastName: string,
 ): Promise<ResultSetHeader> => {
     const conn = await getPool().getConnection();
     try {
@@ -141,7 +142,7 @@ const setLastName = async (
 
 const setPassword = async (
     userId: string,
-    passwordHash: string
+    passwordHash: string,
 ): Promise<ResultSetHeader> => {
     const conn = await getPool().getConnection();
     try {
@@ -159,7 +160,7 @@ const setPassword = async (
 
 const setDateOfBirth = async (
     userId: string,
-    dateOfBirth: string
+    dateOfBirth: string,
 ): Promise<ResultSetHeader> => {
     const conn = await getPool().getConnection();
     try {
@@ -258,8 +259,16 @@ const getLastName = async (userId: string): Promise<string | null> => {
 const update = async (
     userId: string,
     updates: Partial<
-        Pick<User, "firstName" | "lastName" | "email" | "dateOfBirth">
-    >
+        Pick<
+            User,
+            | "firstName"
+            | "lastName"
+            | "email"
+            | "password"
+            | "dateOfBirth"
+            | "profilePictureFilename"
+        >
+    >,
 ): Promise<ResultSetHeader> => {
     const conn = await getPool().getConnection();
     try {
@@ -278,6 +287,21 @@ const update = async (
     }
 };
 
+const getImageFilename = async (userId: string): Promise<string> => {
+    const conn = await getPool().getConnection();
+    try {
+        const query = `SELECT profilePictureFilename FROM Users WHERE userId = UUID_TO_BIN(?)`;
+        const [rows] = await conn.query(query, [userId]);
+        const result = rows as any[];
+        return result.length > 0 ? result[0].profilePictureFilename : null;
+    } catch (err: any) {
+        Logger.error(`Error fetching profile picture: ${err.message}`);
+        throw new Error(`Failed to retrieve profile picture: ${err.message}`);
+    } finally {
+        await conn.release();
+    }
+};
+
 export {
     create,
     getDateOfBirth,
@@ -286,6 +310,7 @@ export {
     getFromFirebaseUid,
     getFromId,
     getFullName,
+    getImageFilename,
     getLastName,
     setDateOfBirth,
     setEmail,

@@ -19,6 +19,7 @@ CREATE TABLE `Users` (
     `firstName`    VARCHAR(64) NULL,
     `lastName`     VARCHAR(64) NULL,
     `dateOfBirth`  DATE NULL,
+    `profilePictureFilename` VARCHAR(255) NULL,
     PRIMARY KEY (`userId`),
     KEY `idx_users_firebase_uid` (`firebaseUid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

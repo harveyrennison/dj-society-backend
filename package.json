@@ -36,6 +36,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@types/multer": "^2.0.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "bcrypt": "^6.0.0",
@@ -45,6 +46,7 @@
     "firebase-admin": "^13.6.0",
     "google-auth-library": "^10.5.0",
     "humps": "^2.0.1",
+    "multer": "^2.0.2",
     "mysql2": "^3.15.3",
     "mz": "^2.7.0",
     "rand-token": "^1.0.1",

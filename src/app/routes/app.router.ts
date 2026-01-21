@@ -1,4 +1,4 @@
-import { Application } from "express";
+import { Application, Router } from "express";
 import backdoorRouter from "./backdoor.routes";
 import { rootUrl } from "./base.routes";
 import djRouter from "./dj.routes";
@@ -14,6 +14,7 @@ const routes = (app: Application) => {
     app.use(rootUrl + "/users", userRouter);
     app.use(rootUrl + "/profile", djRouter);
     app.use(rootUrl + "/genres", genreRouter);
+
 };
 
 export default routes;

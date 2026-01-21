@@ -1,28 +1,36 @@
 import fs from "mz/fs";
 import { getPool } from "../../config/db";
+import { admin } from "../../config/firebase-admin";
 import * as defaultUsers from "../resources/default_users.json";
 import * as passwords from "../services/passwords";
-const imageDirectory = "./storage/images/";
+
 const defaultPhotoDirectory = "./storage/default/";
 
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import Logger from "../../config/logger";
+import { PROFILE_PICTURE_FOLDER } from "../types/constants";
 
 const resetDb = async (): Promise<any> => {
     const promises = [];
 
     const sql = await fs.readFile(
         "src/app/resources/create_database.sql",
-        "utf8"
+        "utf8",
     );
     Logger.info("Resetting Database...");
     promises.push(getPool().query(sql)); // sync call to recreate DB
 
-    const files = await fs.readdir(imageDirectory);
-    for (const file of files) {
-        if (file !== ".gitkeep") {
-            promises.push(fs.unlink(imageDirectory + file));
-        } // sync call to delete photo
+    // Delete all files from Firebase Storage profile-pictures folder
+    try {
+        const bucket = admin.storage().bucket();
+        const [files] = await bucket.getFiles({
+            prefix: PROFILE_PICTURE_FOLDER,
+        });
+        const deletePromises = files.map((file) => file.delete());
+        promises.push(...deletePromises);
+        Logger.info(`Deleting ${files.length} files from Firebase Storage`);
+    } catch (err) {
+        Logger.error(`Error deleting files from Firebase Storage: ${err}`);
     }
 
     return Promise.all(promises); // async wait for DB recreation and images to be deleted
@@ -33,7 +41,7 @@ const loadData = async (): Promise<any> => {
     try {
         const sql = await fs.readFile(
             "src/app/resources/resample_database.sql",
-            "utf8"
+            "utf8",
         );
         await getPool().query(sql);
     } catch (err) {
@@ -41,10 +49,28 @@ const loadData = async (): Promise<any> => {
         throw err;
     }
 
+    // Upload default photos to Firebase Storage
     const defaultPhotos = await fs.readdir(defaultPhotoDirectory);
-    const promises = defaultPhotos.map((file: string) =>
-        fs.copyFile(defaultPhotoDirectory + file, imageDirectory + file)
-    );
+    const bucket = admin.storage().bucket();
+    const promises = defaultPhotos.map(async (file: string) => {
+        const localPath = defaultPhotoDirectory + file;
+        const remotePath = `${PROFILE_PICTURE_FOLDER}/${file}`;
+
+        const fileBuffer = await fs.readFile(localPath);
+        const firebaseFile = bucket.file(remotePath);
+
+        await firebaseFile.save(fileBuffer, {
+            metadata: {
+                contentType: file.endsWith(".png") ? "image/png" : "image/jpeg",
+            },
+        });
+
+        // Make the file publicly accessible
+        await firebaseFile.makePublic();
+
+        Logger.info(`Uploaded ${file} to Firebase Storage`);
+    });
+
     return Promise.all(promises);
 };
 
@@ -66,7 +92,7 @@ const populateDefaultUsers = async (): Promise<void> => {
 
     const passwordIndex = properties.indexOf("password");
     await Promise.all(
-        usersData.map((user: any) => changePasswordToHash(user, passwordIndex))
+        usersData.map((user: any) => changePasswordToHash(user, passwordIndex)),
     );
 
     // Insert each user individually
@@ -94,7 +120,7 @@ async function changePasswordToHash(user: any, passwordIndex: number) {
 }
 
 const executeSql = async (
-    sql: string
+    sql: string,
 ): Promise<RowDataPacket[][] | RowDataPacket[] | ResultSetHeader> => {
     try {
         const [rows] = await getPool().query(sql);

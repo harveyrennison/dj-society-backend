@@ -1,6 +1,7 @@
 // --- 1. Import the Firebase Admin SDK ---
 // Using standard ES import syntax for 'firebase-admin'
 import * as admin from "firebase-admin";
+import Logger from "./logger";
 
 // Import the service account JSON directly.
 // TypeScript environments usually handle this path correctly.
@@ -21,9 +22,11 @@ const initializeFirebaseAdmin = (): void => {
 
     try {
         admin.initializeApp({
-            credential: admin.credential.cert(serviceAccountCert)
+            credential: admin.credential.cert(serviceAccountCert),
+            storageBucket: "the-dj-society.firebasestorage.app",
         });
     } catch (error) {
+        Logger.error("Failed to initialize Firebase Admin:", error);
         throw error;
     }
 };

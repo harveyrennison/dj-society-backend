@@ -32,10 +32,41 @@ Built by Harvey Rennison & Alex McLauchlan, it’s designed for DJs at every lev
 
 ## Tech Stack
 
-- Node.js & Express — handling all the API requests  
-- MySQL (hosted on Aiven) — storing data reliably  
-- JWT Authentication — keeping logins secure  
+- Node.js & Express — handling all the API requests
+- MySQL (hosted on Aiven) — storing data reliably
+- Firebase Storage — cloud storage for images and files
+- Firebase Authentication — secure user authentication
+- JWT Authentication — keeping logins secure
 - Hosted on Vercel — fast and scalable
+
+---
+
+## Setup
+
+1. **Install dependencies:**
+
+    ```bash
+    npm install
+    ```
+
+2. **Configure Firebase:**
+    - Place your Firebase Admin SDK JSON in `secrets/the-dj-society-firebase-adminsdk-fbsvc-806a7080c1.json`
+    - Enable Firebase Storage in your Firebase Console
+    - (Optional) Create a `.env` file from `.env.example` and set your storage bucket
+
+3. **Start the development server:**
+
+    ```bash
+    npm run dev
+    ```
+
+4. **For production:**
+    ```bash
+    npm run build
+    npm start
+    ```
+
+For detailed Firebase Storage setup, see [FIREBASE_MIGRATION.md](FIREBASE_MIGRATION.md)
 
 ---
 

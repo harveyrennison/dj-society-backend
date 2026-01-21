@@ -148,7 +148,7 @@ const googleLogin = async (req: Request, res: Response): Promise<void> => {
             const fUid = decodedToken.uid; // Use the UID directly from the verified token
 
             const placeholderHash = await passwords.hash(
-                GOOGLE_USER_PASSWORD_PLACEHOLDER
+                GOOGLE_USER_PASSWORD_PLACEHOLDER,
             );
 
             const newUser: User = {
@@ -228,7 +228,8 @@ const view = async (req: Request, res: Response): Promise<void> => {
 const update = async (req: Request, res: Response): Promise<void> => {
     try {
         const targetUserId = req.params.id;
-        const { firstName, lastName, email, dateOfBirth } = req.body;
+        const { firstName, lastName, email, dateOfBirth, profilePicture } =
+            req.body;
 
         const users = await usersModel.getFromId(targetUserId);
         if (users.length === 0) {
@@ -255,9 +256,15 @@ const update = async (req: Request, res: Response): Promise<void> => {
         }
 
         const updateData: any = {};
-        if (firstName !== undefined) { updateData.firstName = firstName || null; }
-        if (lastName !== undefined) { updateData.lastName = lastName || null; }
-        if (email !== undefined) { updateData.email = email || null; }
+        if (firstName !== undefined) {
+            updateData.firstName = firstName || null;
+        }
+        if (lastName !== undefined) {
+            updateData.lastName = lastName || null;
+        }
+        if (email !== undefined) {
+            updateData.email = email || null;
+        }
         if (dateOfBirth !== undefined) {
             updateData.dateOfBirth = dateOfBirth || null;
         }

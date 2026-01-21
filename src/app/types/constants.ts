@@ -7,3 +7,5 @@ export const GOOGLE_USER_PASSWORD_PLACEHOLDER =
     "google_external_auth_placeholder_aB3cZ9yX2wV7uT4sR5qP1oN6mK8jI0hGfEeDdCcBbAa";
 
 export const CLIENT = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+export const PROFILE_PICTURE_FOLDER = "profile-picture";
